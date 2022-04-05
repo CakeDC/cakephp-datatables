@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cakephp-datatables;
+namespace Datatables;
 
 use Cake\Core\BasePlugin;
 use Cake\Core\PluginApplicationInterface;
@@ -10,7 +10,7 @@ use Cake\Routing\RouteBuilder;
 use Cake\Console\CommandCollection;
 
 /**
- * Plugin for Cakephp-datatables
+ * Plugin for Datatables
  */
 class Plugin extends BasePlugin
 {
@@ -39,7 +39,7 @@ class Plugin extends BasePlugin
     public function routes(RouteBuilder $routes): void
     {
         $routes->plugin(
-            'Cakephp-datatables',
+            'Datatables',
             ['path' => '/cakephp-datatables'],
             function (RouteBuilder $builder) {
                 // Add custom routes here

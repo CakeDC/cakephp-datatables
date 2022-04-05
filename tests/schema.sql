@@ -1,1 +1,1 @@
--- Test database schema for Cakephp-datatables
+-- Test database schema for Datatables

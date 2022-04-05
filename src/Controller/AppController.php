@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cakephp-datatables\Controller;
+namespace Datatables\Controller;
 
 use App\Controller\AppController as BaseController;
 
