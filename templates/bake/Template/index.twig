@@ -1,0 +1,61 @@
+{#
+/**
+ * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * @link          http://cakephp.org CakePHP(tm) Project
+ * @since         2.0.0
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ */
+#}
+<?php
+/**
+ * @var \{{ namespace }}\View\AppView $this
+ * @var \{{ entityClass }}[]|\Cake\Collection\CollectionInterface ${{ pluralVar }}
+ */
+?>
+{% set fields = Bake.filterFields(fields, schema, modelObject, indexColumns, ['binary', 'text']) %}
+
+<script type="text/javascript">
+    let getData = async () => {
+        let res = await fetch('<?= $this->Url->build(['fullBase' => true, '_ext' => 'json']) ?>')
+    }
+
+    $(function () {
+        $('#table-{{ pluralVar }}').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "ajax": getData(),
+            "columns": [
+{% for field in fields %}
+                {data: '{{ field }}'},
+{% endfor %}
+{% if associations.BelongsTo is defined %}
+{% for alias, details in associations.BelongsTo %}
+                {data: '{{ details.property }}.{{ details.displayField }}'},
+{% endfor %}
+{% endif %}
+                {
+                    data: null,
+                    fnCreatedCell: function (nTd, sData, oData, iRow, iCol) {
+                        // TODO next add link/form templates.
+
+                    }
+                }
+            ]
+        });
+    });
+</script>
+
+<div class="{{ pluralVar }} index content">
+    <h3><?= __('{{ pluralHumanName }}') ?></h3>
+    <div class="table-responsive">
+        <table id ="table-{{ pluralVar }}">
+        </table>
+    </div>
+</div>
