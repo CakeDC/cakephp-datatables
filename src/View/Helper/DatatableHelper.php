@@ -10,6 +10,7 @@ use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
 use Cake\View\View;
 use Datatables\Exception\MissConfiguredException;
+use InvalidArgumentException;
 
 /**
  * Datatable helper
@@ -56,7 +57,9 @@ DATATABLE_CONFIGURATION;
      * @var array
      */
     protected $helpers = ['Url', 'Html'];
-    private $htmlTemplates = [];
+    private $htmlTemplates = [
+        'link' => '<a href="%s">%s</a>'
+    ];
 
     /**
      * @var string[]
@@ -67,6 +70,7 @@ DATATABLE_CONFIGURATION;
      * @var string
      */
     private $getDataTemplate;
+
     /**
      * @var string
      */
@@ -96,8 +100,9 @@ GET_DATA;
     public function setFields(iterable $dataKeys)
     {
         if (empty($dataKeys)) {
-            throw new \InvalidArgumentException(__('Couldn\'t get first item'));
+            throw new InvalidArgumentException(__('Couldn\'t get first item'));
         }
+
         $configColumns = array_map(function ($key) {
             $output = '{';
             if (is_string($key)) {
@@ -106,17 +111,23 @@ GET_DATA;
                 $output .= "data:'{$key['name']}',";
 
                 if (isset($key['links'])) {
-                    $output .= "render: function(data, type) {";
-
+                    $output .= "\nrender: function(data, type, obj) {";
+                    $links = [];
                     foreach ((array) $key['links'] as $link) {
-                        $output .= $this->Html->formatTemplate(
-                            'link',
-                            [
-                                'url' => $this->Url->build($link['url']),
-                                'content' => $link['label']?: "' + {$link['value']} + '"
-                            ]
-                        );
+                        $urlExtraValue = '';
+                        if (is_array($link['url'])) {
+                            $urlExtraValue = $link['url']['extra'] ?? '';
+                            unset($link['url']['extra']);
+                        }
+                        $links[] = "'" .
+                            sprintf(
+                                $this->htmlTemplates['link'],
+                                $this->Url->build($link['url']) . $urlExtraValue,
+                                $link['label']?: "' + {$link['value']} + '"
+                            )
+                            . "'" ;
                     }
+                    $output .= 'return ' . implode("\n + ", $links);
                     $output .= "}";
                 } else {
                     $output .= "render:{$key['render']}";
