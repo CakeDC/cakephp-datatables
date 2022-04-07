@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Datatables\View\Helper;
 
 use Cake\Collection\Collection;
+use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
@@ -53,29 +54,44 @@ DATATABLE_CONFIGURATION;
      * @var array
      */
     protected $helpers = ['Url', 'Html'];
-    private $getDataTemplate = '';
+    private $htmlHelperTemplateIds = ['link'];
+    private $htmlTemplates = [];
 
     /**
      * @var string[]
      */
     private $dataKeys;
 
+    /**
+     * @var string
+     */
+    private $getDataTemplate;
+
     public function initialize(array $config): void
     {
         parent::initialize($config);
+        $this->setHtmlTemplates();
     }
 
     /**
-     * @param array $linkTemplates
+     * Set HTML templates from the Html helper.
+     *
+     * @param array $htmlTemplates
      * @return void
      */
-    public function setLinkTemplates(array $linkTemplates)
+    public function setHtmlTemplates(array $htmlTemplates = [])
     {
-        $this->linkTemplates = $linkTemplates;
+        if (empty($htmlTemplates)) {
+            foreach ($this->htmlHelperTemplateIds as $templateId) {
+                $htmlTemplates[$templateId] = $this->Html->getTemplates($templateId);
+            }
+        }
+        $this->htmlTemplates = array_merge($htmlTemplates, $this->htmlTemplates);
     }
 
     /**
      * Build the get data callback
+     *
      * @param string|array $url
      */
     public function setGetDataUrl($url = null)
@@ -137,6 +153,8 @@ GET_DATA;
 
     /**
      * Validate configuration options for the datatable.
+     *
+     * @throws MissConfiguredException
      */
     private function validateConfigurationOptions()
     {
