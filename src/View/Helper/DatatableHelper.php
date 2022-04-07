@@ -102,42 +102,7 @@ GET_DATA;
         if (empty($dataKeys)) {
             throw new InvalidArgumentException(__('Couldn\'t get first item'));
         }
-
-        $configColumns = array_map(function ($key) {
-            $output = '{';
-            if (is_string($key)) {
-                $output .= "data:'{$key}'";
-            } else {
-                $output .= "data:'{$key['name']}',";
-
-                if (isset($key['links'])) {
-                    $output .= "\nrender: function(data, type, obj) {";
-                    $links = [];
-                    foreach ((array) $key['links'] as $link) {
-                        $urlExtraValue = '';
-                        if (is_array($link['url'])) {
-                            $urlExtraValue = $link['url']['extra'] ?? '';
-                            unset($link['url']['extra']);
-                        }
-                        $links[] = "'" .
-                            sprintf(
-                                $this->htmlTemplates['link'],
-                                $this->Url->build($link['url']) . $urlExtraValue,
-                                $link['label']?: "' + {$link['value']} + '"
-                            )
-                            . "'" ;
-                    }
-                    $output .= 'return ' . implode("\n + ", $links);
-                    $output .= "}";
-                } else {
-                    $output .= "render:{$key['render']}";
-                }
-            }
-            $output .= '}';
-
-            return $output;
-        }, (array)$dataKeys);
-        $this->configColumns = implode(", \n", $configColumns);
+        $this->dataKeys = $dataKeys;
     }
 
     /**
@@ -148,13 +113,13 @@ GET_DATA;
      */
     public function getDatatableScript(string $tagId): string
     {
-        $config = $this->getConfig();
-
         if (empty($this->getDataTemplate)) {
             $this->setGetDataUrl();
         }
-
+        $this->processColumnRenderCallbacks();
         $this->validateConfigurationOptions();
+        $config = $this->getConfig();
+
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
@@ -172,9 +137,66 @@ GET_DATA;
      */
     private function validateConfigurationOptions()
     {
-        if (empty($this->configColumns)) {
+        if (empty($this->dataKeys)) {
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
         }
+
+        if (empty($this->configColumns)) {
+            throw new MissConfiguredException(__('Column renders are not specified for your datatable.'));
+        }
+    }
+
+    /**
+     * Loop columns and create callbacks or simple json objects accordingly.
+     */
+    private function processColumnRenderCallbacks()
+    {
+        $configColumns = array_map(function ($key) {
+            $output = '{';
+            if (is_string($key)) {
+                $output .= "data:'{$key}'";
+            } else {
+                $output .= "data:'{$key['name']}',";
+
+                if (isset($key['links'])) {
+                    $output .= "\nrender: function(data, type, obj) {";
+                    $links = [];
+                    foreach ((array) $key['links'] as $link) {
+                        $links[] = $this->processActionLink($link);
+                    }
+                    $output .= 'return ' . implode("\n + ", $links);
+                    $output .= "}";
+                } else {
+                    $output .= "render:{$key['render']}";
+                }
+            }
+            $output .= '}';
+
+            return $output;
+        }, (array)$this->dataKeys);
+        $this->configColumns = implode(", \n", $configColumns);
+    }
+
+    /**
+     * Format link with specified options from links array.
+     *
+     * @param array $link
+     * @return string
+     */
+    private function processActionLink(array $link): string
+    {
+        $urlExtraValue = '';
+        if (is_array($link['url'])) {
+            $urlExtraValue = $link['url']['extra'] ?? '';
+            unset($link['url']['extra']);
+        }
+        return "'" .
+            sprintf(
+                $this->htmlTemplates['link'],
+                $this->Url->build($link['url']) . $urlExtraValue,
+                $link['label']?: "' + {$link['value']} + '"
+            )
+            . "'" ;
     }
 
     /**
