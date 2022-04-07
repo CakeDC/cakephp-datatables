@@ -43,7 +43,9 @@ class DatatableHelper extends Helper
             ajax: getData(),
             processing: %s,
             serverSide: %s,
-            columns: %s
+            columns: [
+                %s
+            ]
         });
     });
 DATATABLE_CONFIGURATION;
@@ -54,7 +56,6 @@ DATATABLE_CONFIGURATION;
      * @var array
      */
     protected $helpers = ['Url', 'Html'];
-    private $htmlHelperTemplateIds = ['link'];
     private $htmlTemplates = [];
 
     /**
@@ -66,28 +67,11 @@ DATATABLE_CONFIGURATION;
      * @var string
      */
     private $getDataTemplate;
-
-    public function initialize(array $config): void
-    {
-        parent::initialize($config);
-        $this->setHtmlTemplates();
-    }
-
     /**
-     * Set HTML templates from the Html helper.
-     *
-     * @param array $htmlTemplates
-     * @return void
+     * @var string
      */
-    public function setHtmlTemplates(array $htmlTemplates = [])
-    {
-        if (empty($htmlTemplates)) {
-            foreach ($this->htmlHelperTemplateIds as $templateId) {
-                $htmlTemplates[$templateId] = $this->Html->getTemplates($templateId);
-            }
-        }
-        $this->htmlTemplates = array_merge($htmlTemplates, $this->htmlTemplates);
-    }
+    private $configColumns;
+
 
     /**
      * Build the get data callback
@@ -109,21 +93,40 @@ GET_DATA;
     /**
      * @param array|Collection $data
      */
-    public function setFields(iterable $data)
+    public function setFields(iterable $dataKeys)
     {
-        if ($data instanceof Collection) {
-            $dataKeys =  array_keys((array) $data->first());
-        } else {
-            $dataKeys = $data;
-        }
         if (empty($dataKeys)) {
             throw new \InvalidArgumentException(__('Couldn\'t get first item'));
         }
+        $configColumns = array_map(function ($key) {
+            $output = '{';
+            if (is_string($key)) {
+                $output .= "data:'{$key}'";
+            } else {
+                $output .= "data:'{$key['name']}',";
 
-        $stringKeys = array_filter($dataKeys, 'is_string');
-        foreach ($stringKeys as $key) {
-            $this->dataKeys[] = ['data' => $key];
-        }
+                if (isset($key['links'])) {
+                    $output .= "render: function(data, type) {";
+
+                    foreach ((array) $key['links'] as $link) {
+                        $output .= $this->Html->formatTemplate(
+                            'link',
+                            [
+                                'url' => $this->Url->build($link['url']),
+                                'content' => $link['label']?: "' + {$link['value']} + '"
+                            ]
+                        );
+                    }
+                    $output .= "}";
+                } else {
+                    $output .= "render:{$key['render']}";
+                }
+            }
+            $output .= '}';
+
+            return $output;
+        }, (array)$dataKeys);
+        $this->configColumns = implode(", \n", $configColumns);
     }
 
     /**
@@ -135,7 +138,7 @@ GET_DATA;
     public function getDatatableScript(string $tagId): string
     {
         $config = $this->getConfig();
-        $columns = json_encode($this->dataKeys);
+
         if (empty($this->getDataTemplate)) {
             $this->setGetDataUrl();
         }
@@ -147,7 +150,7 @@ GET_DATA;
             $tagId,
             $config['processing']? 'true' : 'false',
             $config['serverSide']? 'true' : 'false',
-            $columns ?? '[]'
+            $this->configColumns
         );
     }
 
@@ -158,7 +161,7 @@ GET_DATA;
      */
     private function validateConfigurationOptions()
     {
-        if (empty($this->dataKeys)) {
+        if (empty($this->configColumns)) {
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
         }
     }
@@ -186,7 +189,6 @@ GET_DATA;
                 $tableHeader = str_replace('.', '_', $tableHeader);
                 $tableHeader = Inflector::humanize($tableHeader);
             }
-
             if ($translate) {
                 $tableHeader = __($tableHeader);
             }
