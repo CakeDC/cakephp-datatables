@@ -8,6 +8,7 @@ use Cake\View\Helper;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\Helper\UrlHelper;
 use Cake\View\View;
+use Datatables\Exception\MissConfiguredException;
 
 /**
  * Datatable helper
@@ -17,7 +18,7 @@ use Cake\View\View;
 class DatatableHelper extends Helper
 {
     /**
-     * Default configuration.
+     * Default Datatable js library configuration.
      *
      * @var array
      */
@@ -27,14 +28,32 @@ class DatatableHelper extends Helper
     ];
 
     /**
+     * Json template with placeholders for configuration options.
+     *
+     * @var string
+     */
+    private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
+    // API callback
+    %s
+
+    // Datatables configuration
+    $(() => {
+        $('#%s').DataTable({
+            ajax: getData(),
+            processing: %s,
+            serverSide: %s,
+            columns: %s
+        });
+    });
+DATATABLE_CONFIGURATION;
+
+    /**
      * Other helpers used by DatatableHelper
      *
      * @var array
      */
     protected $helpers = ['Url', 'Html'];
-    private $linkTemplates = [];
     private $getDataTemplate = '';
-
 
     /**
      * @var string[]
@@ -44,9 +63,6 @@ class DatatableHelper extends Helper
     public function initialize(array $config): void
     {
         parent::initialize($config);
-
-        // Load link templates
-        $linkTemplate = $this->Html->getTemplates('link');
     }
 
     /**
@@ -68,7 +84,7 @@ class DatatableHelper extends Helper
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
         $this->getDataTemplate = <<<GET_DATA
-    let getData = async () => {
+let getData = async () => {
         let res = await fetch('{$url}')
     }
 GET_DATA;
@@ -79,7 +95,6 @@ GET_DATA;
      */
     public function setFields(iterable $data)
     {
-        $firstRecord = null;
         if ($data instanceof Collection) {
             $dataKeys =  array_keys((array) $data->first());
         } else {
@@ -95,21 +110,38 @@ GET_DATA;
         }
     }
 
-    public function getConfigJson(string $tagId, $prettyPrint = false): string
+    /**
+     * Get Datatable initialization script with options configured.
+     *
+     * @param string $tagId
+     * @return string
+     */
+    public function getDatatableScript(string $tagId): string
     {
-        $config = array_merge($this->_defaultConfig, ['columns' => $this->dataKeys]);
-        $config = json_encode($config, ($prettyPrint? JSON_PRETTY_PRINT : 0));
-        // Remove start and end curly brackets
-        $config = substr($config, 1, -1);
-        return <<<TEMPLATE_STRING
-            {$this->getDataTemplate}
-            $(() => {
-                $('#{$tagId}').DataTable({
-                    // Can't escape callback function
-                    ajax: getData(),
-                    {$config},
-                });
-            });
-TEMPLATE_STRING;
+        $config = $this->getConfig();
+        $columns = json_encode($this->dataKeys);
+        if (empty($this->getDataTemplate)) {
+            $this->setGetDataUrl();
+        }
+
+        $this->validateConfigurationOptions();
+        return sprintf(
+            $this->datatableConfigurationTemplate,
+            $this->getDataTemplate,
+            $tagId,
+            $config['processing']? 'true' : 'false',
+            $config['serverSide']? 'true' : 'false',
+            $columns ?? '[]'
+        );
+    }
+
+    /**
+     * Validate configuration options for the datatable.
+     */
+    private function validateConfigurationOptions()
+    {
+        if (empty($this->dataKeys)) {
+            throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
+        }
     }
 }
