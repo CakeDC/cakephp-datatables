@@ -144,4 +144,36 @@ GET_DATA;
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
         }
     }
+
+    /**
+     * Get formatted table headers
+     *
+     * @param iterable|null $tableHeaders
+     * @param bool $format
+     * @param bool $translate
+     * @param array $headersAttrs
+     * @return string
+     */
+    public function getTableHeaders(
+        iterable $tableHeaders = null,
+        bool $format = false,
+        bool $translate = false,
+        array $headersAttrs = []
+    ): string
+    {
+        $tableHeaders = $tableHeaders ?? $this->dataKeys;
+
+        foreach ($tableHeaders as &$tableHeader) {
+            if ($format) {
+                $tableHeader = str_replace('.', '_', $tableHeader);
+                $tableHeader = Inflector::humanize($tableHeader);
+            }
+
+            if ($translate) {
+                $tableHeader = __($tableHeader);
+            }
+        }
+
+        return $this->Html->tableHeaders($tableHeaders, $headersAttrs);
+    }
 }
