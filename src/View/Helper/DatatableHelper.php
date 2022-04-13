@@ -3,19 +3,16 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
-use Cake\Collection\Collection;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
-use Cake\View\Helper\HtmlHelper;
-use Cake\View\Helper\UrlHelper;
-use Cake\View\View;
 use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
 /**
  * Datatable helper
- * @property HtmlHelper $Html
- * @property UrlHelper $Url
+ *
+ * @property \CakeDC\Datatables\View\Helper\HtmlHelper $Html
+ * @property \Cake\View\Helper\UrlHelper $Url
  */
 class DatatableHelper extends Helper
 {
@@ -58,7 +55,7 @@ DATATABLE_CONFIGURATION;
      */
     protected $helpers = ['Url', 'Html'];
     private $htmlTemplates = [
-        'link' => '<a href="%s">%s</a>'
+        'link' => '<a href="%s">%s</a>',
     ];
 
     /**
@@ -75,7 +72,6 @@ DATATABLE_CONFIGURATION;
      * @var string
      */
     private $configColumns;
-
 
     /**
      * Build the get data callback
@@ -95,7 +91,7 @@ GET_DATA;
     }
 
     /**
-     * @param array|Collection $data
+     * @param \Cake\Collection\Collection $dataKeys
      */
     public function setFields(iterable $dataKeys)
     {
@@ -124,8 +120,8 @@ GET_DATA;
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
             $tagId,
-            $config['processing']? 'true' : 'false',
-            $config['serverSide']? 'true' : 'false',
+            $config['processing'] ? 'true' : 'false',
+            $config['serverSide'] ? 'true' : 'false',
             $this->configColumns
         );
     }
@@ -133,7 +129,7 @@ GET_DATA;
     /**
      * Validate configuration options for the datatable.
      *
-     * @throws MissConfiguredException
+     * @throws \Datatables\Exception\MissConfiguredException
      */
     private function validateConfigurationOptions()
     {
@@ -161,11 +157,11 @@ GET_DATA;
                 if (isset($key['links'])) {
                     $output .= "\nrender: function(data, type, obj) {";
                     $links = [];
-                    foreach ((array) $key['links'] as $link) {
+                    foreach ((array)$key['links'] as $link) {
                         $links[] = $this->processActionLink($link);
                     }
                     $output .= 'return ' . implode("\n + ", $links);
-                    $output .= "}";
+                    $output .= '}';
                 } else {
                     $output .= "render:{$key['render']}";
                 }
@@ -190,13 +186,14 @@ GET_DATA;
             $urlExtraValue = $link['url']['extra'] ?? '';
             unset($link['url']['extra']);
         }
+
         return "'" .
             sprintf(
                 $this->htmlTemplates['link'],
                 $this->Url->build($link['url']) . $urlExtraValue,
-                $link['label']?: "' + {$link['value']} + '"
+                $link['label'] ?: "' + {$link['value']} + '"
             )
-            . "'" ;
+            . "'";
     }
 
     /**
@@ -209,12 +206,11 @@ GET_DATA;
      * @return string
      */
     public function getTableHeaders(
-        iterable $tableHeaders = null,
+        ?iterable $tableHeaders = null,
         bool $format = false,
         bool $translate = false,
         array $headersAttrs = []
-    ): string
-    {
+    ): string {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {
