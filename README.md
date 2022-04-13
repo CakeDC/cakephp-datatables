@@ -1,4 +1,4 @@
-# Cakephp-datatables plugin for CakePHP
+# CakeDC Datatables plugin for CakePHP
 
 ## IMPORTANT: This plugin is under heavy development now, use it at your own risk.
 
