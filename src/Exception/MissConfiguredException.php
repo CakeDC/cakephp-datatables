@@ -1,6 +1,6 @@
 <?php
 
-namespace Datatables\Exception;
+namespace CakeDC\Datatables\Exception;
 
 use Cake\Core\Exception\CakeException;
 

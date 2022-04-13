@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Datatables\View\Helper;
+namespace CakeDC\Datatables\View\Helper;
 
 use Cake\Collection\Collection;
 use Cake\Utility\Inflector;

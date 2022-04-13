@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Datatables;
+namespace CakeDC\Datatables;
 
 use Cake\Core\BasePlugin;
 use Cake\Core\PluginApplicationInterface;
