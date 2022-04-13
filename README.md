@@ -1,5 +1,7 @@
 # Cakephp-datatables plugin for CakePHP
 
+## IMPORTANT: This plugin is under heavy development now, use it at your own risk.
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](https://getcomposer.org).
