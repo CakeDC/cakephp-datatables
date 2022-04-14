@@ -54,6 +54,10 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         foreach ($dtOrders as $dtOrder) {
             $colIndex = (int)($dtOrder['column'] ?? 0);
             $colOrder = $dtOrder['dir'] ?? 'asc';
+            $colOrderable = $dtColumns[$colIndex]['orderable'] ?? null;
+            if (!$colOrderable === 'true') {
+                continue;
+            }
             $colName = $dtColumns[$colIndex]['data'];
             $settings['order'][$colName] = $colOrder;
         }
@@ -96,5 +100,41 @@ class DatatablesPaginatorComponent extends PaginatorComponent
             'recordsTotal',
             'recordsFiltered',
         ]);
+    }
+
+    /**
+     * Translate request query params from datatables into search queries for cakephp
+     * Extracting parameters from the structure provided in datatables like
+     * {"data":"title","name":"","searchable":"true","orderable":"true","search":{"value":"((((a))))","regex":"false"}}
+     * into ?title=a
+     * @return void
+     */
+    public function prepareRequestQueryParams(): void
+    {
+        // translate ordering
+        $request = $this->getController()->getRequest();
+        $dtColumns = $request->getQuery('columns');
+        $newQueryParams = [];
+        foreach ($dtColumns as $dtColumn) {
+            if (($dtColumn['searchable'] ?? null) !== 'true') {
+                continue;
+            }
+            $colName = $dtColumn['data'];
+            if ($request->getQuery($colName)) {
+                // we already have a query param with values, ignoring this column
+                continue;
+            }
+            $colSearch = $dtColumn['search']['value'] ?? null;
+            $colSearch = ltrim($colSearch, '(');
+            $colSearch = rtrim($colSearch, ')');
+            $colSearch = trim($colSearch);
+            //@todo: enable regexp based search option
+            if (!$colSearch) {
+                continue;
+            }
+            $newQueryParams[$colName] = $colSearch;
+        }
+        $request = $request->withQueryParams($request->getQueryParams() + $newQueryParams);
+        $this->getController()->setRequest($request);
     }
 }
