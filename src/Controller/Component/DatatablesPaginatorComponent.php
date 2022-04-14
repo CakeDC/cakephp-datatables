@@ -23,19 +23,11 @@ class DatatablesPaginatorComponent extends PaginatorComponent
 
     public function paginate(object $object, array $settings = []): ResultSetInterface
     {
-        // translate query params
         $request = $this->_registry->getController()->getRequest();
-        Log::error(json_encode($request->getQuery()));
-        Log::error(json_encode($request->getQuery('columns')));
-        Log::error(json_encode($request->getQuery('search')));
-        Log::error(json_encode($request->getQuery('order')));
-        Log::error(json_encode($request->getQuery('start')));
-        Log::error(json_encode($request->getQuery('length')));
         $settings = $this->applyOrder($request, $settings);
         $settings = $this->applyLimits($request, $settings);
-        Log::debug(json_encode($settings));
         $resultSet = parent::paginate($object, $settings);
-        // translate paging options
+
         return $resultSet;
     }
 
