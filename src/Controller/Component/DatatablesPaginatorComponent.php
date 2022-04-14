@@ -4,9 +4,7 @@ declare(strict_types=1);
 namespace CakeDC\Datatables\Controller\Component;
 
 use Cake\Controller\Component\PaginatorComponent;
-use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\ResultSetInterface;
-use Cake\Datasource\SimplePaginator;
 use Cake\Http\ServerRequest;
 use Cake\Log\Log;
 
@@ -96,7 +94,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
             'data',
             'draw',
             'recordsTotal',
-            'recordsFiltered'
+            'recordsFiltered',
         ]);
     }
 }
