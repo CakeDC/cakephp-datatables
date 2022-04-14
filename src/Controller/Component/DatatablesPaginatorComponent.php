@@ -107,6 +107,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      * Extracting parameters from the structure provided in datatables like
      * {"data":"title","name":"","searchable":"true","orderable":"true","search":{"value":"((((a))))","regex":"false"}}
      * into ?title=a
+     *
      * @return void
      */
     public function prepareRequestQueryParams(): void
