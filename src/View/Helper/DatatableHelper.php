@@ -187,6 +187,7 @@ GET_DATA;
         }
         $this->processColumnRenderCallbacks();
         $this->validateConfigurationOptions();
+
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
@@ -282,11 +283,10 @@ GET_DATA;
      */
     public function getTableHeaders(
         ?iterable $tableHeaders = null,
-        bool      $format = false,
-        bool      $translate = false,
-        array     $headersAttrs = []
-    ): string
-    {
+        bool $format = false,
+        bool $translate = false,
+        array $headersAttrs = []
+    ): string {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {

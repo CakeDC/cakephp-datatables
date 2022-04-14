@@ -7,7 +7,6 @@ use Cake\Controller\Component\PaginatorComponent;
 use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Datasource\SimplePaginator;
-use Cake\Error\Debugger;
 use Cake\Http\ServerRequest;
 use Cake\Log\Log;
 
@@ -26,7 +25,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
 
     /**
      * Usinb SimplePaginator by default, override if needed
-     * @param ComponentRegistry $registry
+     *
+     * @param \Cake\Controller\ComponentRegistry $registry
      * @param array $config
      */
     public function __construct(ComponentRegistry $registry, array $config = [])
@@ -58,7 +58,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate between datatables and CakePHP pagination order
      *
-     * @param ServerRequest $request
+     * @param \Cake\Http\ServerRequest $request
      * @param array $settings
      * @return array
      */
@@ -80,7 +80,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate limit and offset from datatables
      *
-     * @param ServerRequest $request
+     * @param \Cake\Http\ServerRequest $request
      * @param array $settings
      * @return array
      */
@@ -93,5 +93,4 @@ class DatatablesPaginatorComponent extends PaginatorComponent
 
         return $settings;
     }
-
 }
