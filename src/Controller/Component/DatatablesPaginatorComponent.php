@@ -23,20 +23,6 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     protected $_defaultConfig = [
     ];
 
-    /**
-     * Usinb SimplePaginator by default, override if needed
-     *
-     * @param \Cake\Controller\ComponentRegistry $registry
-     * @param array $config
-     */
-    public function __construct(ComponentRegistry $registry, array $config = [])
-    {
-        if (!isset($config['paginator'])) {
-            $config['paginator'] = new SimplePaginator();
-        }
-        parent::__construct($registry, $config);
-    }
-
     public function paginate(object $object, array $settings = []): ResultSetInterface
     {
         // translate query params
@@ -90,7 +76,27 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         $dtLength = (int)$request->getQuery('length');
 
         $settings['limit'] = $dtLength;
+        $settings['page'] = $dtLength === 0 ? 1 : intdiv($dtStart, $dtLength);
 
         return $settings;
+    }
+
+    public function prepareResponse($resultSet): void
+    {
+        $pagingData = $this->getController()->getRequest()->getAttribute('paging');
+        if (is_array($pagingData) && count($pagingData) === 1) {
+            $pagingData = reset($pagingData);
+        }
+        $this->getController()->set([
+            'data' => $resultSet,
+            'recordsTotal' => $pagingData['count'] ?? 0,
+            'recordsFiltered' => $pagingData['count'] ?? 0,
+        ]);
+        $this->getController()->viewBuilder()->setOption('serialize', [
+            'data',
+            'draw',
+            'recordsTotal',
+            'recordsFiltered'
+        ]);
     }
 }

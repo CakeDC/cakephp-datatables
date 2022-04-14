@@ -55,7 +55,8 @@ class DatatableHelper extends Helper
             ajax: getData(),
             processing: %s,
             serverSide: %s,
-            pagingType: "simple",
+            //@todo: add option to select the paging type
+            //pagingType: "simple",
             columns: [
                 %s
             ],
