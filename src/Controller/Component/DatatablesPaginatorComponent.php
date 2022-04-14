@@ -6,7 +6,6 @@ namespace CakeDC\Datatables\Controller\Component;
 use Cake\Controller\Component\PaginatorComponent;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Http\ServerRequest;
-use Cake\Log\Log;
 
 /**
  * DatatablesPaginator component
