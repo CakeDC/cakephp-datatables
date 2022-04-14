@@ -5,6 +5,7 @@ namespace CakeDC\Datatables\View\Helper;
 
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
+use Cake\View\View;
 use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
@@ -24,6 +25,11 @@ class DatatableHelper extends Helper
     protected $_defaultConfig = [
         'processing' => true,
         'serverSide' => true,
+        // override to provide translations, @see https://datatables.net/examples/basic_init/language.html
+        'language' => [],
+        'lengthMenu' => [],
+        // @todo: enable column based search inputs
+        'columnSearch' => true,
     ];
 
     /**
@@ -36,14 +42,73 @@ class DatatableHelper extends Helper
     %s
 
     // Datatables configuration
-    $(() => {
+    $(() => {     
+        //@todo use configuration for multicolumn filters
+        $('#%s thead tr')
+            .clone(true)
+            .addClass('filters')
+            .appendTo('#%s thead');
+            
         $('#%s').DataTable({
+            orderCellsTop: true,
+            fixedHeader: true,
             ajax: getData(),
             processing: %s,
             serverSide: %s,
+            pagingType: "simple",
             columns: [
                 %s
-            ]
+            ],
+            language: %s,
+            lengthMenu: %s,
+            //@todo use configuration instead  
+            initComplete: function () {
+                var api = this.api();
+     
+                // For each column
+                api
+                    .columns()
+                    .eq(0)
+                    .each(function (colIdx) {
+                        // Set the header cell to contain the input element
+                        var cell = $('.filters th').eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input type="text" placeholder="' + title + '" />');
+     
+                        // On every keypress in this input
+                        $(
+                            'input',
+                            $('.filters th').eq($(api.column(colIdx).header()).index())
+                        )
+                            .off('keyup change')
+                            .on('keyup change', function (e) {
+                                e.stopPropagation();
+     
+                                // Get the search value
+                                $(this).attr('title', $(this).val());
+                                var regexr = '({search})'; //$(this).parents('th').find('select').val();
+     
+                                var cursorPosition = this.selectionStart;
+                                // Search the column for that value
+                                api
+                                    .column(colIdx)
+                                    .search(
+                                        this.value != ''
+                                            ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                            : '',
+                                        this.value != '',
+                                        this.value == ''
+                                    )
+                                    .draw();
+     
+                                $(this)
+                                    .focus()[0]
+                                    .setSelectionRange(cursorPosition, cursorPosition);
+                            });
+                    });
+            },
         });
     });
 DATATABLE_CONFIGURATION;
@@ -72,6 +137,14 @@ DATATABLE_CONFIGURATION;
      * @var string
      */
     private $configColumns;
+
+    public function __construct(View $view, array $config = [])
+    {
+        if (!isset($config['lengthMenu'])) {
+            $config['lengthMenu'] = [20, 50, 100];
+        }
+        parent::__construct($view, $config);
+    }
 
     /**
      * Build the get data callback
@@ -114,15 +187,17 @@ GET_DATA;
         }
         $this->processColumnRenderCallbacks();
         $this->validateConfigurationOptions();
-        $config = $this->getConfig();
-
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
             $tagId,
-            $config['processing'] ? 'true' : 'false',
-            $config['serverSide'] ? 'true' : 'false',
-            $this->configColumns
+            $tagId,
+            $tagId,
+            $this->getConfig('processing') ? 'true' : 'false',
+            $this->getConfig('serverSide') ? 'true' : 'false',
+            $this->configColumns,
+            json_encode($this->getConfig('language')),
+            json_encode($this->getConfig('lengthMenu')),
         );
     }
 
@@ -131,7 +206,7 @@ GET_DATA;
      *
      * @throws \Datatables\Exception\MissConfiguredException
      */
-    private function validateConfigurationOptions()
+    protected function validateConfigurationOptions()
     {
         if (empty($this->dataKeys)) {
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
@@ -145,7 +220,7 @@ GET_DATA;
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
      */
-    private function processColumnRenderCallbacks()
+    protected function processColumnRenderCallbacks()
     {
         $configColumns = array_map(function ($key) {
             $output = '{';
@@ -179,7 +254,7 @@ GET_DATA;
      * @param array $link
      * @return string
      */
-    private function processActionLink(array $link): string
+    protected function processActionLink(array $link): string
     {
         $urlExtraValue = '';
         if (is_array($link['url'])) {
@@ -207,10 +282,11 @@ GET_DATA;
      */
     public function getTableHeaders(
         ?iterable $tableHeaders = null,
-        bool $format = false,
-        bool $translate = false,
-        array $headersAttrs = []
-    ): string {
+        bool      $format = false,
+        bool      $translate = false,
+        array     $headersAttrs = []
+    ): string
+    {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {
