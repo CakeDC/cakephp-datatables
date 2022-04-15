@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
+use Cake\Log\Log;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\View;
@@ -76,7 +77,7 @@ class DatatableHelper extends Helper
                             $(api.column(colIdx).header()).index()
                         );
                         var title = $(cell).text();
-                        $(cell).html('<input type="text" placeholder="' + title + '" />');
+                        $(cell).html('<input type="text" style="width: 100%%;" placeholder="' + title + '" />');
      
                         // On every keypress in this input
                         $(
@@ -221,15 +222,16 @@ GET_DATA;
 
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
+     * @todo: refactor into data object to define the column properties accordingly
      */
     protected function processColumnRenderCallbacks()
     {
         $configColumns = array_map(function ($key) {
             $output = '{';
             if (is_string($key)) {
-                $output .= "data:'{$key}'";
+                $output .= "data: '{$key}'";
             } else {
-                $output .= "data:'{$key['name']}',";
+                $output .= "data: '{$key['name']}',";
 
                 if (isset($key['links'])) {
                     $output .= "\nrender: function(data, type, obj) {";
@@ -239,8 +241,15 @@ GET_DATA;
                     }
                     $output .= 'return ' . implode("\n + ", $links);
                     $output .= '}';
-                } else {
-                    $output .= "render:{$key['render']}";
+                }
+                elseif ($key['render'] ?? null) {
+                    $output .= "render: {$key['render']}";
+                }
+                elseif ($key['orderable'] ?? null) {
+                    $output .= "orderable: {$key['orderable']}";
+                }
+                elseif ($key['width'] ?? null) {
+                    $output .= "width: '{$key['width']}'";
                 }
             }
             $output .= '}';

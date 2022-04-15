@@ -74,6 +74,12 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         return $settings;
     }
 
+    /**
+     * Translate the CakePHP pagination paging attribute into response keys for the datatables to consume
+     *
+     * @param $resultSet
+     * @return void
+     */
     public function prepareResponse($resultSet): void
     {
         $pagingData = $this->getController()->getRequest()->getAttribute('paging');
