@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
+use Cake\Log\Log;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\View;
@@ -175,6 +176,38 @@ GET_DATA;
         $this->dataKeys = $dataKeys;
     }
 
+    public function setRowActions(?iterable $rowActions = null)
+    {
+        if ($rowActions) {
+            $this->rowActions = $rowActions;
+
+            return;
+        }
+
+        // default row actions
+        $this->rowActions = [
+            'name' => 'actions',
+            'orderable' => 'false',
+            'width' => '30px',
+            //@todo: provide template customization for row actions default labels
+            'links' => [
+                [
+                    'url' => ['action' => 'view', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="fas fa-search"></li>',
+                ],
+                [
+                    'url' => ['action' => 'edit', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="fas fa-pencil-alt"></li>',
+                ],
+                //@todo: we'll need a way to produce postlinks
+                [
+                    'url' => ['action' => 'delete', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="far fa-trash-alt"></li>',
+                ],
+            ],
+        ];
+    }
+
     /**
      * Get Datatable initialization script with options configured.
      *
@@ -226,7 +259,7 @@ GET_DATA;
      */
     protected function processColumnRenderCallbacks()
     {
-        $configColumns = array_map(function ($key) {
+        $processor = function ($key) {
             $output = '{';
             if (is_string($key)) {
                 $output .= "data: '{$key}'";
@@ -252,8 +285,11 @@ GET_DATA;
             $output .= '}';
 
             return $output;
-        }, (array)$this->dataKeys);
+        };
+        $configColumns = array_map($processor, (array)$this->dataKeys);
+        $configRowActions = $processor((array)$this->rowActions);
         $this->configColumns = implode(", \n", $configColumns);
+        $this->configColumns .= ", \n" . $configRowActions;
     }
 
     /**
@@ -290,10 +326,11 @@ GET_DATA;
      */
     public function getTableHeaders(
         ?iterable $tableHeaders = null,
-        bool $format = false,
-        bool $translate = false,
-        array $headersAttrs = []
-    ): string {
+        bool      $format = false,
+        bool      $translate = false,
+        array     $headersAttrs = []
+    ): string
+    {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {
