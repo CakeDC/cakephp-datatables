@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
-use Cake\Log\Log;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\View;
@@ -222,6 +221,7 @@ GET_DATA;
 
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
+     *
      * @todo: refactor into data object to define the column properties accordingly
      */
     protected function processColumnRenderCallbacks()
@@ -241,14 +241,11 @@ GET_DATA;
                     }
                     $output .= 'return ' . implode("\n + ", $links);
                     $output .= '}';
-                }
-                elseif ($key['render'] ?? null) {
+                } elseif ($key['render'] ?? null) {
                     $output .= "render: {$key['render']}";
-                }
-                elseif ($key['orderable'] ?? null) {
+                } elseif ($key['orderable'] ?? null) {
                     $output .= "orderable: {$key['orderable']}";
-                }
-                elseif ($key['width'] ?? null) {
+                } elseif ($key['width'] ?? null) {
                     $output .= "width: '{$key['width']}'";
                 }
             }
