@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
-use Cake\Log\Log;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\View;
@@ -326,11 +325,10 @@ GET_DATA;
      */
     public function getTableHeaders(
         ?iterable $tableHeaders = null,
-        bool      $format = false,
-        bool      $translate = false,
-        array     $headersAttrs = []
-    ): string
-    {
+        bool $format = false,
+        bool $translate = false,
+        array $headersAttrs = []
+    ): string {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {
