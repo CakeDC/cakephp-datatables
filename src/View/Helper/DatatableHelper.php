@@ -5,6 +5,7 @@ namespace CakeDC\Datatables\View\Helper;
 
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
+use Cake\View\View;
 use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
@@ -24,7 +25,61 @@ class DatatableHelper extends Helper
     protected $_defaultConfig = [
         'processing' => true,
         'serverSide' => true,
+        // override to provide translations, @see https://datatables.net/examples/basic_init/language.html
+        'language' => [],
+        'lengthMenu' => [],
+        // @todo: enable column based search inputs
+        'columnSearch' => true,
     ];
+
+    private $datatableConfigurationSearchTemplate = <<<SEARCH_CONFIGURATION
+        
+        var api = this.api();
+
+        // For each column
+        api
+            .columns()
+            .eq(0)
+            .each(function (colIdx) {
+                // Set the header cell to contain the input element
+                var cell = $('.filters th').eq(
+                    $(api.column(colIdx).header()).index()
+                );
+                var title = $(cell).text();
+                $(cell).html('<input type="text" style="width: 100%%;" placeholder="' + title + '" />');
+
+                // On every keypress in this input
+                $(
+                    'input',
+                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                )
+                .off('keyup change')
+                .on('keyup change', function (e) {
+                    e.stopPropagation();
+
+                    // Get the search value
+                    $(this).attr('title', $(this).val());
+                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+
+                    var cursorPosition = this.selectionStart;
+                    // Search the column for that value
+                    api
+                        .column(colIdx)
+                        .search(
+                            this.value != ''
+                                ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                : '',
+                            this.value != '',
+                            this.value == ''
+                        )
+                        .draw();
+
+                    $(this)
+                        .focus()[0]
+                        .setSelectionRange(cursorPosition, cursorPosition);
+                });
+            });
+    SEARCH_CONFIGURATION;
 
     /**
      * Json template with placeholders for configuration options.
@@ -32,21 +87,50 @@ class DatatableHelper extends Helper
      * @var string
      */
     private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
-    // API callback
-    %s
+        // API callback
+        %s
 
-    // Datatables configuration
-    $(() => {
-        $('#%s').DataTable({
-            ajax: getData(),
-            processing: %s,
-            serverSide: %s,
-            columns: [
-                %s
-            ]
+        // Range search 
+        let from_date = null;
+        let to_date = null;
+
+        // Generic search         
+
+        // Datatables configuration
+        $(() => {     
+            //@todo use configuration for multicolumn filters
+            /*
+            $('#%s thead tr')
+                .clone(true)
+                .addClass('filters')
+                .appendTo('#%s thead');
+            */  
+            $('#%s').DataTable({
+                orderCellsTop: true,
+                fixedHeader: true,
+                ajax: getData(),           
+                processing: %s,
+                serverSide: %s,
+                //@todo: add option to select the paging type
+                //pagingType: "simple",
+                columns: [
+                    %s
+                ],
+                columnDefs: [
+                    %s                                
+                ],            
+                language: %s,
+                lengthMenu: %s,
+                drawCallback: function () {
+                    //console.log('drawCallback');
+                },
+                //@todo use configuration instead  
+                initComplete: function () {
+                    %s
+                },
+            });
         });
-    });
-DATATABLE_CONFIGURATION;
+    DATATABLE_CONFIGURATION;
 
     /**
      * Other helpers used by DatatableHelper
@@ -55,7 +139,7 @@ DATATABLE_CONFIGURATION;
      */
     protected $helpers = ['Url', 'Html'];
     private $htmlTemplates = [
-        'link' => '<a href="%s">%s</a>',
+        'link' => '<a href="%s" target="%s">%s</a>',
     ];
 
     /**
@@ -74,6 +158,25 @@ DATATABLE_CONFIGURATION;
     private $configColumns;
 
     /**
+     * @var string[]
+     */
+    private $definitionColumns;
+
+    /**
+     * @var boolean
+     */
+    private $columnSearch = true;
+
+
+    public function __construct(View $view, array $config = [])
+    {
+        if (!isset($config['lengthMenu'])) {
+            $config['lengthMenu'] = [5, 10, 25, 50, 100];
+        }
+        parent::__construct($view, $config);
+    }
+
+    /**
      * Build the get data callback
      *
      * @param string|array $url
@@ -84,10 +187,30 @@ DATATABLE_CONFIGURATION;
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
         $this->getDataTemplate = <<<GET_DATA
-let getData = async () => {
-        let res = await fetch('{$url}')
+            let getData = async () => {
+                let res = await fetch('{$url}')
+            }
+        GET_DATA;
     }
-GET_DATA;
+
+    /**
+     * Set specific template to getData callback
+     *
+     * @param string $template
+     */    
+    public function setGetDataTemplate($template)
+    {
+        $this->getDataTemplate = $template;
+    }
+
+    /**
+     * Set columns definitions as orderable and sortable
+     *
+     * @param \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
+     */
+    public function setDefinitions(iterable $dataDefinitions)
+    {
+        $this->definitionColumns = $dataDefinitions;
     }
 
     /**
@@ -101,6 +224,38 @@ GET_DATA;
         $this->dataKeys = $dataKeys;
     }
 
+    public function setRowActions(?iterable $rowActions = null)
+    {
+        if ($rowActions) {
+            $this->rowActions = $rowActions;
+
+            return;
+        }
+
+        // default row actions
+        $this->rowActions = [
+            'name' => 'actions',
+            'orderable' => 'false',
+            'width' => '30px',
+            //@todo: provide template customization for row actions default labels
+            'links' => [
+                [
+                    'url' => ['action' => 'view', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="fas fa-search"></li>',
+                ],
+                [
+                    'url' => ['action' => 'edit', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="fas fa-pencil-alt"></li>',
+                ],
+                //@todo: we'll need a way to produce postlinks
+                [
+                    'url' => ['action' => 'delete', 'extra' => "/' + obj.id + '"],
+                    'label' => '<li class="far fa-trash-alt"></li>',
+                ],
+            ],
+        ];
+    }
+
     /**
      * Get Datatable initialization script with options configured.
      *
@@ -112,17 +267,24 @@ GET_DATA;
         if (empty($this->getDataTemplate)) {
             $this->setGetDataUrl();
         }
+        
         $this->processColumnRenderCallbacks();
+        $this->processColumnDefinitionsCallbacks();
         $this->validateConfigurationOptions();
-        $config = $this->getConfig();
 
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
             $tagId,
-            $config['processing'] ? 'true' : 'false',
-            $config['serverSide'] ? 'true' : 'false',
-            $this->configColumns
+            $tagId,
+            $tagId,
+            $this->getConfig('processing') ? 'true' : 'false',
+            $this->getConfig('serverSide') ? 'true' : 'false',
+            $this->configColumns,
+            $this->definitionColumns,
+            json_encode($this->getConfig('language')),
+            json_encode($this->getConfig('lengthMenu')),
+            $this->columnSearch ? $this->datatableConfigurationSearchTemplate : '',
         );
     }
 
@@ -131,7 +293,7 @@ GET_DATA;
      *
      * @throws \Datatables\Exception\MissConfiguredException
      */
-    private function validateConfigurationOptions()
+    protected function validateConfigurationOptions()
     {
         if (empty($this->dataKeys)) {
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
@@ -142,17 +304,36 @@ GET_DATA;
         }
     }
 
+    protected function processColumnDefinitionsCallbacks()
+    {
+
+        $rows = [];
+        foreach ($this->definitionColumns as $definition) {
+            $parts = [];
+            foreach ($definition as $key => $val) {
+                $parts[] = "'{$key}': {$val}";
+            }
+            $rows[] = '{' . implode(',', $parts) . '}';
+        }
+        $this->definitionColumns = implode(',', $rows);
+    }
+
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
+     *
+     * @todo: refactor into data object to define the column properties accordingly
      */
-    private function processColumnRenderCallbacks()
+    protected function processColumnRenderCallbacks()
     {
-        $configColumns = array_map(function ($key) {
+        $processor = function ($key) {
             $output = '{';
             if (is_string($key)) {
-                $output .= "data:'{$key}'";
+                $output .= "data: '{$key}'";
             } else {
-                $output .= "data:'{$key['name']}',";
+                if (!isset($key['name'])) {
+                    return '';
+                }
+                $output .= "data: '{$key['name']}',";
 
                 if (isset($key['links'])) {
                     $output .= "\nrender: function(data, type, obj) {";
@@ -162,15 +343,22 @@ GET_DATA;
                     }
                     $output .= 'return ' . implode("\n + ", $links);
                     $output .= '}';
-                } else {
-                    $output .= "render:{$key['render']}";
+                } elseif ($key['render'] ?? null) {
+                    $output .= "render: {$key['render']}";
+                } elseif ($key['orderable'] ?? null) {
+                    $output .= "orderable: {$key['orderable']}";
+                } elseif ($key['width'] ?? null) {
+                    $output .= "width: '{$key['width']}'";
                 }
             }
             $output .= '}';
 
             return $output;
-        }, (array)$this->dataKeys);
+        };
+        $configColumns = array_map($processor, (array)$this->dataKeys);
+        $configRowActions = $processor((array)$this->rowActions);
         $this->configColumns = implode(", \n", $configColumns);
+        $this->configColumns .= ", \n" . $configRowActions;
     }
 
     /**
@@ -179,7 +367,7 @@ GET_DATA;
      * @param array $link
      * @return string
      */
-    private function processActionLink(array $link): string
+    protected function processActionLink(array $link): string
     {
         $urlExtraValue = '';
         if (is_array($link['url'])) {
@@ -187,10 +375,15 @@ GET_DATA;
             unset($link['url']['extra']);
         }
 
+        if (!isset($link['target'])) {
+            $link['target'] = '_self';
+        }
+
         return "'" .
             sprintf(
                 $this->htmlTemplates['link'],
                 $this->Url->build($link['url']) . $urlExtraValue,
+                $link['target'] ?: "' + {$link['target']} + '",
                 $link['label'] ?: "' + {$link['value']} + '"
             )
             . "'";
@@ -209,7 +402,8 @@ GET_DATA;
         ?iterable $tableHeaders = null,
         bool $format = false,
         bool $translate = false,
-        array $headersAttrs = []
+        array $headersAttrsTr = [],
+        array $headersAttrsTh = []
     ): string {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
@@ -223,6 +417,6 @@ GET_DATA;
             }
         }
 
-        return $this->Html->tableHeaders($tableHeaders, $headersAttrs);
+        return $this->Html->tableHeaders($tableHeaders, $headersAttrsTr, $headersAttrsTh);
     }
 }
