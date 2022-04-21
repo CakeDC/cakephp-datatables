@@ -29,12 +29,18 @@ class DatatableHelper extends Helper
         'language' => [],
         'lengthMenu' => [],
         // @todo: enable column based search inputs
-        'columnSearch' => true,
+        'columnSearch' => false,
+        'genericSearch' => false,
+        'searchInput' => '',
+        'searchRange' => false,
+        'extraFields' => [],
     ];
 
     private $datatableConfigurationSearchTemplate = <<<SEARCH_CONFIGURATION
         
         var api = this.api();
+
+        console.log('column search active');
 
         // For each column
         api
@@ -81,6 +87,19 @@ class DatatableHelper extends Helper
             });
     SEARCH_CONFIGURATION;
 
+    private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
+        $('#%s').on( 'keyup click', function () {
+            $('#%s').DataTable().search(                
+                $('#%s').val()
+            ).draw();            
+        });
+    GENERIC_SEARCH_CONFIGURATION;
+
+    private $rangeSearchTemplate = <<<RANGE_SEARCH_CONFIGURATION
+        let from_date = null;
+        let to_date = null;
+    RANGE_SEARCH_CONFIGURATION;
+
     /**
      * Json template with placeholders for configuration options.
      *
@@ -90,11 +109,11 @@ class DatatableHelper extends Helper
         // API callback
         %s
 
-        // Range search 
-        let from_date = null;
-        let to_date = null;
-
         // Generic search         
+        %s
+
+        // Range search 
+        %s
 
         // Datatables configuration
         $(() => {     
@@ -104,7 +123,7 @@ class DatatableHelper extends Helper
                 .clone(true)
                 .addClass('filters')
                 .appendTo('#%s thead');
-            */  
+            */
             $('#%s').DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
@@ -162,18 +181,17 @@ class DatatableHelper extends Helper
      */
     private $definitionColumns;
 
-    /**
-     * @var boolean
-     */
-    private $columnSearch = true;
-
-
     public function __construct(View $view, array $config = [])
     {
         if (!isset($config['lengthMenu'])) {
             $config['lengthMenu'] = [5, 10, 25, 50, 100];
         }
         parent::__construct($view, $config);
+    }
+
+    public function setConfigKey($key, $value = null, $merge = true)
+    {
+        $this->setConfig($key, $value);
     }
 
     /**
@@ -186,21 +204,33 @@ class DatatableHelper extends Helper
         $url = (array)$url;
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
-        $this->getDataTemplate = <<<GET_DATA
-            let getData = async () => {
-                let res = await fetch('{$url}')
-            }
-        GET_DATA;
-    }
 
-    /**
-     * Set specific template to getData callback
-     *
-     * @param string $template
-     */    
-    public function setGetDataTemplate($template)
-    {
-        $this->getDataTemplate = $template;
+        if (!empty($this->getConfig('extraFields')) || $this->getConfig('searchRange')) {
+        //if ($this->getConfig('searchRange')) {
+            $this->processExtraFields();
+            $extraFields = $this->getConfig('extraFields');
+            $this->getDataTemplate = <<<GET_DATA
+            function getData() {
+                console.log('getData',"'{$url}'");      
+                return {
+                    url:'{$url}',    
+                    data: function ( d ) {
+                            return $.extend( {}, d, {                            
+                                "from_date": from_date,
+                                "to_date": to_date,
+                                $extraFields
+                            });
+                        }                            
+                }      
+            }    
+            GET_DATA;
+        } else {
+            $this->getDataTemplate = <<<GET_DATA
+                let getData = async () => {
+                    let res = await fetch('{$url}')
+                }
+            GET_DATA;
+        }
     }
 
     /**
@@ -267,14 +297,29 @@ class DatatableHelper extends Helper
         if (empty($this->getDataTemplate)) {
             $this->setGetDataUrl();
         }
-        
+
         $this->processColumnRenderCallbacks();
         $this->processColumnDefinitionsCallbacks();
         $this->validateConfigurationOptions();
 
+        if ($this->getConfig('genericSearch')) {
+            $searchInput = $this->getConfig('searchInput');
+            $searchTemplate = sprintf($this->genericSearchTemplate, $searchInput, $tagId, $searchInput);
+        } else {
+            $searchTemplate = '';
+        }
+
+        if ($this->getConfig('searchRange')) {
+            $rangeTemplate = $this->rangeSearchTemplate;
+        } else {
+            $rangeTemplate = '';
+        }
+
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
+            $searchTemplate,
+            $rangeTemplate,
             $tagId,
             $tagId,
             $tagId,
@@ -284,7 +329,7 @@ class DatatableHelper extends Helper
             $this->definitionColumns,
             json_encode($this->getConfig('language')),
             json_encode($this->getConfig('lengthMenu')),
-            $this->columnSearch ? $this->datatableConfigurationSearchTemplate : '',
+            $this->getConfig('columnSearch') ? $this->datatableConfigurationSearchTemplate : '',
         );
     }
 
@@ -304,9 +349,21 @@ class DatatableHelper extends Helper
         }
     }
 
+    protected function processExtraFields()
+    {
+        $rows = [];
+        foreach ($this->getConfig('extraFields') as $definition) {
+            $parts = [];
+            foreach ($definition as $key => $val) {
+                $parts[] = "'{$key}': {$val}";
+            }
+            $rows[] = implode(',', $parts);
+        }
+        $this->setConfig('extraFields', implode(',', $rows));
+    }
+
     protected function processColumnDefinitionsCallbacks()
     {
-
         $rows = [];
         foreach ($this->definitionColumns as $definition) {
             $parts = [];
