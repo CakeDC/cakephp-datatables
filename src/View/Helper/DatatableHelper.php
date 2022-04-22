@@ -30,17 +30,18 @@ class DatatableHelper extends Helper
         'lengthMenu' => [],
         // @todo: enable column based search inputs
         'columnSearch' => false,
+        // generic seearh configuration
         'genericSearch' => false,
         'searchInput' => '',
+        // range dates search configuration
         'searchRange' => false,
+        // extra fields to inject in ajax call
         'extraFields' => [],
     ];
 
-    private $datatableConfigurationSearchTemplate = <<<SEARCH_CONFIGURATION
+    private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         
         var api = this.api();
-
-        console.log('column search active');
 
         // For each column
         api
@@ -85,7 +86,7 @@ class DatatableHelper extends Helper
                         .setSelectionRange(cursorPosition, cursorPosition);
                 });
             });
-    SEARCH_CONFIGURATION;
+    COLUMN_SEARCH_CONFIGURATION;
 
     private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#%s').on( 'keyup click', function () {
@@ -99,6 +100,13 @@ class DatatableHelper extends Helper
         let from_date = null;
         let to_date = null;
     RANGE_SEARCH_CONFIGURATION;
+
+    private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
+        $('#%s thead tr')
+            .clone(true)
+            .addClass('filters')
+            .appendTo('#%s thead');
+    COLUMN_SEARCH_HEADER_CONFIGURATION;
 
     /**
      * Json template with placeholders for configuration options.
@@ -117,13 +125,10 @@ class DatatableHelper extends Helper
 
         // Datatables configuration
         $(() => {     
+
             //@todo use configuration for multicolumn filters
-            /*
-            $('#%s thead tr')
-                .clone(true)
-                .addClass('filters')
-                .appendTo('#%s thead');
-            */
+            %s
+            
             $('#%s').DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
@@ -141,7 +146,6 @@ class DatatableHelper extends Helper
                 language: %s,
                 lengthMenu: %s,
                 drawCallback: function () {
-                    //console.log('drawCallback');
                 },
                 //@todo use configuration instead  
                 initComplete: function () {
@@ -189,6 +193,13 @@ class DatatableHelper extends Helper
         parent::__construct($view, $config);
     }
 
+    /**
+     * set value of congig variable to value passed as param
+     *
+     * @param string|array $key key to write
+     * @param string|array $value value to write
+     * @param bool $merge merge
+     */
     public function setConfigKey($key, $value = null, $merge = true)
     {
         $this->setConfig($key, $value);
@@ -197,7 +208,7 @@ class DatatableHelper extends Helper
     /**
      * Build the get data callback
      *
-     * @param string|array $url
+     * @param string|array $url url to ajax call
      */
     public function setGetDataUrl($url = null)
     {
@@ -206,12 +217,9 @@ class DatatableHelper extends Helper
         $url = $this->Url->build($url);
 
         if (!empty($this->getConfig('extraFields')) || $this->getConfig('searchRange')) {
-        //if ($this->getConfig('searchRange')) {
-            $this->processExtraFields();
-            $extraFields = $this->getConfig('extraFields');
+            $extraFields = $this->processExtraFields();
             $this->getDataTemplate = <<<GET_DATA
-            function getData() {
-                console.log('getData',"'{$url}'");      
+            function getData() {                
                 return {
                     url:'{$url}',    
                     data: function ( d ) {
@@ -244,7 +252,7 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * @param \Cake\Collection\Collection $dataKeys
+     * @param \Cake\Collection\Collection $dataKeys data keys to show in datatable
      */
     public function setFields(iterable $dataKeys)
     {
@@ -302,6 +310,12 @@ class DatatableHelper extends Helper
         $this->processColumnDefinitionsCallbacks();
         $this->validateConfigurationOptions();
 
+        if ($this->getConfig('columnSearch')) {
+            $columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
+        } else {
+            $columnSearchTemplate = '';
+        }
+
         if ($this->getConfig('genericSearch')) {
             $searchInput = $this->getConfig('searchInput');
             $searchTemplate = sprintf($this->genericSearchTemplate, $searchInput, $tagId, $searchInput);
@@ -320,8 +334,7 @@ class DatatableHelper extends Helper
             $this->getDataTemplate,
             $searchTemplate,
             $rangeTemplate,
-            $tagId,
-            $tagId,
+            $columnSearchTemplate,
             $tagId,
             $this->getConfig('processing') ? 'true' : 'false',
             $this->getConfig('serverSide') ? 'true' : 'false',
@@ -329,7 +342,7 @@ class DatatableHelper extends Helper
             $this->definitionColumns,
             json_encode($this->getConfig('language')),
             json_encode($this->getConfig('lengthMenu')),
-            $this->getConfig('columnSearch') ? $this->datatableConfigurationSearchTemplate : '',
+            $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
         );
     }
 
@@ -349,6 +362,9 @@ class DatatableHelper extends Helper
         }
     }
 
+    /**
+     * Loop extra fields to inject in ajax call to server
+     */
     protected function processExtraFields()
     {
         $rows = [];
@@ -359,9 +375,13 @@ class DatatableHelper extends Helper
             }
             $rows[] = implode(',', $parts);
         }
-        $this->setConfig('extraFields', implode(',', $rows));
+
+        return implode(',', $rows);
     }
 
+    /**
+     * Loop columns definitions to set properties inside ColumnDefs as orderable or searchable
+     */
     protected function processColumnDefinitionsCallbacks()
     {
         $rows = [];
@@ -427,6 +447,7 @@ class DatatableHelper extends Helper
     protected function processActionLink(array $link): string
     {
         $urlExtraValue = '';
+
         if (is_array($link['url'])) {
             $urlExtraValue = $link['url']['extra'] ?? '';
             unset($link['url']['extra']);
@@ -452,7 +473,8 @@ class DatatableHelper extends Helper
      * @param iterable|null $tableHeaders
      * @param bool $format
      * @param bool $translate
-     * @param array $headersAttrs
+     * @param array $headersAttrsTr
+     * @param array $headersAttrsTh
      * @return string
      */
     public function getTableHeaders(
