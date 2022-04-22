@@ -1,5 +1,6 @@
 <?php
 //@todo check width not working
+
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
@@ -484,12 +485,11 @@ class DatatableHelper extends Helper
      */
     public function getTableHeaders(
         ?iterable $tableHeaders = null,
-        bool      $format = false,
-        bool      $translate = false,
-        array     $headersAttrsTr = [],
-        array     $headersAttrsTh = []
-    ): string
-    {
+        bool $format = false,
+        bool $translate = false,
+        array $headersAttrsTr = [],
+        array $headersAttrsTh = []
+    ): string {
         $tableHeaders = $tableHeaders ?? $this->dataKeys;
 
         foreach ($tableHeaders as &$tableHeader) {
