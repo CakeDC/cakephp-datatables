@@ -1,4 +1,4 @@
-# Cakephp-datatables plugin for CakePHP
+# CakeDC Datatables plugin for CakePHP
 
 ## IMPORTANT: This plugin is under heavy development now, use it at your own risk.
 
@@ -9,17 +9,17 @@ You can install this plugin into your CakePHP application using [composer](https
 The recommended way to install composer packages is:
 
 ```shell
-composer require cakephp/cakephp-datatables
+composer require cakedc/cakephp-datatables
 ```
 
 # To bake datatable index pages.
 ```shell
-bin/cake bake all Articles --theme Cakephp-datatables
+bin/cake bake all Articles --theme Cakedc-datatables
 ```
 
 ### To overwrite existing index pages.
 ```shell
-bin/cake bake all Articles --theme Cakephp-datatables -f
+bin/cake bake all Articles --theme Cakedc-datatables -f
 ```
 
 

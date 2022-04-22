@@ -69,7 +69,11 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         $dtLength = (int)$request->getQuery('length');
 
         $settings['limit'] = $dtLength;
-        $settings['page'] = $dtLength === 0 ? 1 : intdiv($dtStart, $dtLength);
+        if ($dtStart === 0) {
+            $settings['page'] = 1;
+        } else {
+            $settings['page'] = intdiv($dtStart, $dtLength) + 1;
+        }
 
         return $settings;
     }
