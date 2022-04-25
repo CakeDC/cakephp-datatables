@@ -413,9 +413,9 @@ class DatatableHelper extends Helper
             if (is_string($key)) {
                 $output .= "data: '{$key}'";
             } else {
-//                if (!isset($key['name'])) {
-//                    return '';
-//                }
+                if (!isset($key['name'])) {
+                    return '';
+                }
                 $output .= "data: '{$key['name']}',";
 
                 if (isset($key['links'])) {
