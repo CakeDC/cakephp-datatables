@@ -33,15 +33,18 @@ class DatatableHelper extends Helper
         'columnSearch' => true,
         // search configuration, false to hide
         //@todo make internal seach on/off based on this param
-        'search' => false,
+        //true => use default input search, false => use externalSearchInputId
+        'search' => true,
         // set an external input to act as search
         //@todo make external seach based on this id
         'externalSearchInputId' => null,
-        //@todo remove this
-        // range dates search configuration
-        'searchRange' => false,
         // extra fields to inject in ajax call, for example CSRF token, additional ids, etc
         'extraFields' => [],
+        //draw callback function
+        'drawCallback' => null,
+        //complete callback function
+        'onCompleteCallback' => null,
+
     ];
 
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
@@ -96,15 +99,10 @@ class DatatableHelper extends Helper
     private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#%s').on( 'keyup click', function () {
             $('#%s').DataTable().search(
-                $('#%s').val()
+                $('#%s').val()       
             ).draw();
         });
     GENERIC_SEARCH_CONFIGURATION;
-
-    private $rangeSearchTemplate = <<<RANGE_SEARCH_CONFIGURATION
-        let from_date = null;
-        let to_date = null;
-    RANGE_SEARCH_CONFIGURATION;
 
     private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
         $('#%s thead tr')
@@ -125,9 +123,6 @@ class DatatableHelper extends Helper
         // Generic search         
         %s
 
-        // Range search 
-        %s
-
         // Datatables configuration
         $(() => {     
 
@@ -138,6 +133,7 @@ class DatatableHelper extends Helper
                 orderCellsTop: true,
                 fixedHeader: true,
                 ajax: getData(),           
+                //searching: false,
                 processing: %s,
                 serverSide: %s,
                 //@todo: add option to select the paging type
@@ -150,11 +146,18 @@ class DatatableHelper extends Helper
                 ],            
                 language: %s,
                 lengthMenu: %s,
-                drawCallback: function () {
-                },
+                drawCallback: %s,
+                //drawCallback: function () {
+                //},
                 //@todo use configuration instead  
-                initComplete: function () {
+                initComplete: function () { 
+
+                    //onComplete
                     %s
+
+                    //column search                   
+                    %s
+
                 },
             });
         });
@@ -221,7 +224,7 @@ class DatatableHelper extends Helper
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
 
-        if (!empty($this->getConfig('extraFields')) || $this->getConfig('searchRange')) {
+        if (!empty($this->getConfig('extraFields'))) {
             $extraFields = $this->processExtraFields();
             //@todo change to async or anonymous js function
             $this->getDataTemplate = <<<GET_DATA
@@ -230,8 +233,6 @@ class DatatableHelper extends Helper
                     url:'{$url}',    
                     data: function ( d ) {
                             return $.extend( {}, d, {                            
-                                "from_date": from_date,
-                                "to_date": to_date,
                                 $extraFields
                             });
                         }                            
@@ -322,24 +323,17 @@ class DatatableHelper extends Helper
             $columnSearchTemplate = '';
         }
 
-        if ($this->getConfig('genericSearch')) {
-            $searchInput = $this->getConfig('searchInput');
+        if (!$this->getConfig('search')) {
+            $searchInput = $this->getConfig('externalSearchInputId');
             $searchTemplate = sprintf($this->genericSearchTemplate, $searchInput, $tagId, $searchInput);
         } else {
             $searchTemplate = '';
-        }
-
-        if ($this->getConfig('searchRange')) {
-            $rangeTemplate = $this->rangeSearchTemplate;
-        } else {
-            $rangeTemplate = '';
         }
 
         return sprintf(
             $this->datatableConfigurationTemplate,
             $this->getDataTemplate,
             $searchTemplate,
-            $rangeTemplate,
             $columnSearchTemplate,
             $tagId,
             $this->getConfig('processing') ? 'true' : 'false',
@@ -348,8 +342,11 @@ class DatatableHelper extends Helper
             $this->definitionColumns,
             json_encode($this->getConfig('language')),
             json_encode($this->getConfig('lengthMenu')),
+            $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
+            $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
             $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
         );
+
     }
 
     /**
