@@ -29,18 +29,17 @@ class DatatableHelper extends Helper
         'serverSide' => true,
         // override to provide translations, @see https://datatables.net/examples/basic_init/language.html
         'language' => [],
+        'pageLength' => 10,
         'lengthMenu' => [],
         'columnSearch' => true,
-        // search configuration, false to hide
-        //@todo make internal seach on/off based on this param
-        //true => use default input search, false => use externalSearchInputId
+        //true => use default input search, false => use externalSearchInputId input search field
         'search' => true,
         // set an external input to act as search
-        //@todo make external seach based on this id
         'externalSearchInputId' => null,
         // extra fields to inject in ajax call, for example CSRF token, additional ids, etc
         'extraFields' => [],
         //draw callback function
+        //@todo add function callback in callback Datatable function
         'drawCallback' => null,
         //complete callback function
         'onCompleteCallback' => null,
@@ -134,6 +133,7 @@ class DatatableHelper extends Helper
                 fixedHeader: true,
                 ajax: getData(),           
                 //searching: false,
+                pageLength: %s,
                 processing: %s,
                 serverSide: %s,
                 //@todo: add option to select the paging type
@@ -146,9 +146,8 @@ class DatatableHelper extends Helper
                 ],            
                 language: %s,
                 lengthMenu: %s,
+                //@todo add function callback in callback Datatable function
                 drawCallback: %s,
-                //drawCallback: function () {
-                //},
                 //@todo use configuration instead  
                 initComplete: function () { 
 
@@ -336,6 +335,7 @@ class DatatableHelper extends Helper
             $searchTemplate,
             $columnSearchTemplate,
             $tagId,
+            $this->getConfig('pageLentgh') ?? '10',
             $this->getConfig('processing') ? 'true' : 'false',
             $this->getConfig('serverSide') ? 'true' : 'false',
             $this->configColumns,
@@ -346,7 +346,6 @@ class DatatableHelper extends Helper
             $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
             $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
         );
-
     }
 
     /**
