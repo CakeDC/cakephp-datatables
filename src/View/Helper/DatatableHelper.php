@@ -459,14 +459,29 @@ class DatatableHelper extends Helper
             $link['target'] = '_self';
         }
 
-        return "'" .
-            sprintf(
-                $this->htmlTemplates['link'],
-                $this->Url->build($link['url']) . $urlExtraValue,
-                $link['target'] ?: "' + {$link['target']} + '",
-                $link['label'] ?: "' + {$link['value']} + '"
-            )
-            . "'";
+        if (!isset($link['value'])) {
+            $link['value'] = null;
+        }
+
+        if (!isset($link['disable'])) {
+            $link['disable'] = 'function (value) { return false }';
+        }
+
+        $htmlLink = sprintf(
+            $this->htmlTemplates['link'],
+            $this->Url->build($link['url']) . $urlExtraValue,
+            $link['target'] ?: "' + {$link['target']} + '",
+            $link['label'] ?: "' + {$link['value']} + '"
+        );
+
+        return 'function(value) {
+            let disable = ' . $link['disable'] . '
+            if (disable(value)) {
+                return value;
+            }
+
+            return \'' . $htmlLink . '\';
+        }(' . $link['value'] . ')';
     }
 
     /**
