@@ -420,7 +420,7 @@ class DatatableHelper extends Helper
                     foreach ((array)$key['links'] as $link) {
                         $links[] = $this->processActionLink($link);
                     }
-                    $output .= 'return ' . implode("\n + ", $links);
+                    $output .= " return " . implode("\n + ", $links);
                     $output .= '}';
                 } elseif ($key['render'] ?? null) {
                     $output .= "render: {$key['render']}";
@@ -459,14 +459,29 @@ class DatatableHelper extends Helper
             $link['target'] = '_self';
         }
 
-        return "'" .
-            sprintf(
-                $this->htmlTemplates['link'],
-                $this->Url->build($link['url']) . $urlExtraValue,
-                $link['target'] ?: "' + {$link['target']} + '",
-                $link['label'] ?: "' + {$link['value']} + '"
-            )
-            . "'";
+        if (!isset($link['value'])) {
+            $link['value'] = null;
+        }
+
+        $htmlLink = sprintf(
+            $this->htmlTemplates['link'],
+            $this->Url->build($link['url']) . $urlExtraValue,
+            $link['target'] ?: "' + {$link['target']} + '",
+            $link['label'] ?: "' + {$link['value']} + '"
+        );
+
+        if (!isset($link['disable']) || empty($link['disable'])) {
+            return '\'' . $htmlLink . '\'';
+        }
+
+        return 'function(value) {
+            let disable = ' . $link['disable'] . '
+            if (disable(value, obj)) {
+                return value;
+            }
+
+            return \'' . $htmlLink . '\';
+        }(' . $link['value'] . ')';
     }
 
     /**
