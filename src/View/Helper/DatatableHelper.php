@@ -8,6 +8,7 @@ namespace CakeDC\Datatables\View\Helper;
 use Cake\Utility\Inflector;
 use Cake\View\Helper;
 use Cake\View\View;
+use CakeDC\Datatables\Datatables;
 use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
@@ -123,7 +124,7 @@ class DatatableHelper extends Helper
         %s
 
         // Datatables configuration
-        $(() => {     
+        $(() => {
 
             //@todo use configuration for multicolumn filters
             %s
@@ -157,9 +158,23 @@ class DatatableHelper extends Helper
                     //column search                   
                     %s
 
+
+
                 },
             });
         });
+
+        function withConfirm(element, message, confirmCondition) {
+            //alert("confirm message");
+            console.log(element);
+            console.log(message);
+            console.log(confirmCondition);
+        }
+
+        function withPostLink(button) {
+            alert("post link");
+        }
+
     DATATABLE_CONFIGURATION;
 
     /**
@@ -168,9 +183,6 @@ class DatatableHelper extends Helper
      * @var array
      */
     protected $helpers = ['Url', 'Html'];
-    private $htmlTemplates = [
-        'link' => '<a href="%s" target="%s">%s</a>',
-    ];
 
     /**
      * @var string[]
@@ -294,6 +306,8 @@ class DatatableHelper extends Helper
                 //@todo: we'll need a way to produce postlinks
                 [
                     'url' => ['action' => 'delete', 'extra' => "/' + obj.id + '"],
+                    'type' => Datatables::LINK_TYPE_DELETE,
+                    'confirm' => __('Are you sure you want to delete this item?'), // @todo go to class config
                     'label' => '<li class="far fa-trash-alt"></li>',
                 ],
             ],
@@ -415,12 +429,9 @@ class DatatableHelper extends Helper
                 $output .= "data: '{$key['name']}',";
 
                 if (isset($key['links'])) {
-                    $output .= "\nrender: function(data, type, obj) {";
-                    $links = [];
-                    foreach ((array)$key['links'] as $link) {
-                        $links[] = $this->processActionLink($link);
-                    }
-                    $output .= " return " . implode("\n + ", $links);
+                    $output .= "\nrender: function(data, type, obj) { ";
+                    $links = $this->processActionLinkList((array)$key['links']);
+                    $output .= "return " . implode("\n + ", $links);
                     $output .= '}';
                 } elseif ($key['render'] ?? null) {
                     $output .= "render: {$key['render']}";
@@ -440,6 +451,17 @@ class DatatableHelper extends Helper
         $this->configColumns .= ", \n" . $configRowActions;
     }
 
+    protected function processActionLinkList(array $sourceLinks): array
+    {
+        $links = [];
+        foreach ($sourceLinks as $link) {
+            $links[] = $this->processActionLink($link);
+        }
+
+        return $links;
+    }
+
+
     /**
      * Format link with specified options from links array.
      *
@@ -448,40 +470,20 @@ class DatatableHelper extends Helper
      */
     protected function processActionLink(array $link): string
     {
-        $urlExtraValue = '';
+        switch ($link['type'] ?? null) {
+            case Datatables::LINK_TYPE_DELETE:
+            case Datatables::LINK_TYPE_PUT:
+            case Datatables::LINK_TYPE_POST:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
+                break;
 
-        if (is_array($link['url'])) {
-            $urlExtraValue = $link['url']['extra'] ?? '';
-            unset($link['url']['extra']);
+            case Datatables::LINK_TYPE_GET:
+            default:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\GetLink($this, $link);
+                break;
         }
 
-        if (!isset($link['target'])) {
-            $link['target'] = '_self';
-        }
-
-        if (!isset($link['value'])) {
-            $link['value'] = null;
-        }
-
-        $htmlLink = sprintf(
-            $this->htmlTemplates['link'],
-            $this->Url->build($link['url']) . $urlExtraValue,
-            $link['target'] ?: "' + {$link['target']} + '",
-            $link['label'] ?: "' + {$link['value']} + '"
-        );
-
-        if (!isset($link['disable']) || empty($link['disable'])) {
-            return '\'' . $htmlLink . '\'';
-        }
-
-        return 'function(value) {
-            let disable = ' . $link['disable'] . '
-            if (disable(value, obj)) {
-                return value;
-            }
-
-            return \'' . $htmlLink . '\';
-        }(' . $link['value'] . ')';
+        return $output->link();
     }
 
     /**
