@@ -77,6 +77,34 @@ Print data from the record, hard coded values. Also add parameters to the link U
 ]); ?>
 ```
 
+### Add conditions to disable links
+
+Add the disable option in the link, with a javascript closure that returns a boolean value, true for show value without the link, and false to return it with the link, this function receives the value of the current column and the row object.
+
+```php
+<?= $this->Datatable->setFields([
+    [
+        'name' => 'title',
+        'links' => [
+            [
+                'url' => ['action' => 'view', 'extra' => ("/' + obj.id + '")],
+                'label' => 'hard coded',
+                'disable' => 'function (value) { 
+                    return value === "N/A"
+                }',
+            ],
+            [
+                'url' => ['action' => 'view', 'd'],
+                'label' => 'hard coded'
+                'disable' => 'function (value, obj) { 
+                    return obj.status === "inactive"
+                }',
+            ],
+        ]
+    ],
+]); ?>
+```
+
 ### A mix of simple and complex columns conditions
 ```php
 $this->Datatable->setFields(
