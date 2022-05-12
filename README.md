@@ -144,7 +144,7 @@ The condition for the confirmation message is a javascript closure that receives
         ]
     ],
 ]); ?>
-
+```
 
 ### A mix of simple and complex columns conditions
 ```php
@@ -210,7 +210,6 @@ Will produce the following script.
         });
     });
 ```
-
 
 # Getting the datatable script.
 All you need is to tell the help to create the script for you, pass the tag id to be used for
