@@ -303,10 +303,9 @@ class DatatableHelper extends Helper
                     'url' => ['action' => 'edit', 'extra' => "/' + obj.id + '"],
                     'label' => '<li class="fas fa-pencil-alt"></li>',
                 ],
-                //@todo: we'll need a way to produce postlinks
                 [
                     'url' => ['action' => 'delete', 'extra' => "/' + obj.id + '"],
-                    'type' => Datatables::LINK_TYPE_DELETE,
+                    'type' => Datatables::LINK_TYPE_POST,
                     'confirm' => __('Are you sure you want to delete this item?'), // @todo go to class config
                     'label' => '<li class="far fa-trash-alt"></li>',
                 ],
