@@ -163,18 +163,6 @@ class DatatableHelper extends Helper
                 },
             });
         });
-
-        function withConfirm(element, message, confirmCondition) {
-            //alert("confirm message");
-            console.log(element);
-            console.log(message);
-            console.log(confirmCondition);
-        }
-
-        function withPostLink(button) {
-            alert("post link");
-        }
-
     DATATABLE_CONFIGURATION;
 
     /**
