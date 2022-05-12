@@ -7,7 +7,7 @@ namespace CakeDC\Datatables\View\Formatter\Link;
 use Cake\Utility\Text;
 use CakeDC\Datatables\Datatables;
 
-class GetLink extends AbstractLink
+class Link extends AbstractLink
 {
     protected $_defaultConfig = [
         'template' => '<a href=":href" target=":target">:content</a>',

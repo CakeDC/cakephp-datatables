@@ -478,7 +478,7 @@ class DatatableHelper extends Helper
 
             case Datatables::LINK_TYPE_GET:
             default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\GetLink($this, $link);
+                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
                 break;
         }
 
