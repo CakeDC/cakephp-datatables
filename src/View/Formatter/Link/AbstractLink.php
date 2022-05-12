@@ -23,7 +23,6 @@ class AbstractLink
         if (empty($this->getConfig('url'))) {
             throw new Exception("url option cannot be empty");
         }
-
     }
 
     /**

@@ -158,8 +158,6 @@ class DatatableHelper extends Helper
                     //column search                   
                     %s
 
-
-
                 },
             });
         });
