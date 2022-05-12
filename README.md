@@ -105,6 +105,47 @@ Add the disable option in the link, with a javascript closure that returns a boo
 ]); ?>
 ```
 
+### Add postLink and confirmation message
+Add the `type => "POST"` to the link, and the message in the `confirm` option
+
+```php
+<?= $this->Datatable->setFields([
+    [
+        'name' => 'action',
+        'links' => [
+            [
+                'url' => ['action' => 'delete', 'extra' => ("/' + obj.id + '")],
+                'label' => 'delete record',
+                'type' => \CakeDC\Datatables\Datatables::LINK_TYPE_POST,
+                'confirm' => __('Are you sure you want to delete this item?'),
+            ],
+        ]
+    ],
+]); ?>
+```
+
+NOTE: For now postLink does not support SecurityComponent, it is recommended to disable the method to use in the controller
+
+
+#### Change method for confirmation message
+The condition for the confirmation message is a javascript closure that receives the message and returns a boolean value.
+```php
+<?= $this->Datatable->setFields([
+    [
+        'name' => 'action',
+        'links' => [
+            [
+                'url' => ['action' => 'delete', 'extra' => ("/' + obj.id + '")],
+                'label' => 'delete record',
+                'type' => \CakeDC\Datatables\Datatables::LINK_TYPE_POST,
+                'confirm' => __('Are you sure you want to delete this item?'),
+                'confirmCondition' => 'function (message){ return window.confirm(message); }',
+            ],
+        ]
+    ],
+]); ?>
+
+
 ### A mix of simple and complex columns conditions
 ```php
 $this->Datatable->setFields(
