@@ -44,7 +44,7 @@ class DatatableHelper extends Helper
         'drawCallback' => null,
         //complete callback function
         'onCompleteCallback' => null,
-
+        'ajaxUrl' => null,
     ];
 
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
@@ -61,7 +61,7 @@ class DatatableHelper extends Helper
                     $(api.column(colIdx).header()).index()
                 );
                 var title = $(cell).text();
-                $(cell).html('<input type="text" style="width: 100%%;" placeholder="' + title + '" />');
+                $(cell).html('<input type="text" style="width:100%;" placeholder="' + title + '" />');
 
                 // On every keypress in this input
                 $(
@@ -120,7 +120,7 @@ class DatatableHelper extends Helper
         // API callback
         %s
 
-        // Generic search         
+        // Generic search
         %s
 
         // Datatables configuration
@@ -132,7 +132,8 @@ class DatatableHelper extends Helper
             $('#%s').DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
-                ajax: getData(),           
+                autoWidth: false,
+                ajax: getData(),
                 //searching: false,
                 pageLength: %s,
                 processing: %s,
@@ -143,8 +144,8 @@ class DatatableHelper extends Helper
                     %s
                 ],
                 columnDefs: [
-                    %s                                
-                ],            
+                    %s
+                ],
                 language: %s,
                 lengthMenu: %s,
                 //@todo add function callback in callback Datatable function
@@ -155,7 +156,7 @@ class DatatableHelper extends Helper
                     //onComplete
                     %s
 
-                    //column search                   
+                    //column search
                     %s
 
                 },
@@ -215,9 +216,9 @@ class DatatableHelper extends Helper
      *
      * @param string|array $url url to ajax call
      */
-    public function setGetDataUrl($url = null)
+    public function setGetDataUrl($defaultUrl = null)
     {
-        $url = (array)$url;
+        $url = (array) $this->getConfig('ajaxUrl', $defaultUrl);
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
 
@@ -225,22 +226,26 @@ class DatatableHelper extends Helper
             $extraFields = $this->processExtraFields();
             //@todo change to async or anonymous js function
             $this->getDataTemplate = <<<GET_DATA
-            function getData() {                
+            let getData = async () => {
                 return {
-                    url:'{$url}',    
+                    url:'{$url}',
                     data: function ( d ) {
-                            return $.extend( {}, d, {                            
+                            return $.extend( {}, d, {
                                 $extraFields
                             });
-                        }                            
-                }      
-            }    
+                        }
+                }
+            };
             GET_DATA;
         } else {
+            // @todo setConfig type POST
             $this->getDataTemplate = <<<GET_DATA
                 let getData = async () => {
-                    let res = await fetch('{$url}')
-                }
+                    return {
+                        url:'{$url}',
+                        type: 'POST',
+                    }
+                };
             GET_DATA;
         }
     }
@@ -278,7 +283,7 @@ class DatatableHelper extends Helper
         $this->rowActions = [
             'name' => 'actions',
             'orderable' => 'false',
-            'width' => '30px',
+            'width' => '60px',
             //@todo: provide template customization for row actions default labels
             'links' => [
                 [
@@ -417,13 +422,16 @@ class DatatableHelper extends Helper
                     $output .= "\nrender: function(data, type, obj) { ";
                     $links = $this->processActionLinkList((array)$key['links']);
                     $output .= "return " . implode("\n + ", $links);
-                    $output .= '}';
-                } elseif ($key['render'] ?? null) {
-                    $output .= "render: {$key['render']}";
-                } elseif ($key['orderable'] ?? null) {
-                    $output .= "orderable: {$key['orderable']}";
-                } elseif ($key['width'] ?? null) {
-                    $output .= "width: '{$key['width']}'";
+                    $output .= '},';
+                }
+                if ($key['render'] ?? null) {
+                    $output .= "\nrender: {$key['render']},";
+                }
+                if ($key['orderable'] ?? null) {
+                    $output .= "\norderable: {$key['orderable']},";
+                }
+                if ($key['width'] ?? null) {
+                    $output .= "\nwidth: '{$key['width']}',";
                 }
             }
             $output .= '}';
