@@ -12,16 +12,15 @@ The recommended way to install composer packages is:
 composer require cakedc/cakephp-datatables
 ```
 
+### Load plugin
+```shell
+bin/cake plugin load CakeDC/Datatables
+```
+
 # To bake datatable index pages.
 ```shell
-bin/cake bake all Articles --theme Cakedc-datatables
+bin/cake bake all Articles -t CakeDC/Datatables
 ```
-
-### To overwrite existing index pages.
-```shell
-bin/cake bake all Articles --theme Cakedc-datatables -f
-```
-
 
 # Setting up the datatable fields
 You can set a simple array with the columns to print or a more complex one with render callbacks, or a mix of them.
