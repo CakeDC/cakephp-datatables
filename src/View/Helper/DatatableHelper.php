@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace CakeDC\Datatables\View\Helper;
 
 use Cake\Utility\Inflector;
+use Cake\Utility\Text;
 use Cake\View\Helper;
 use Cake\View\View;
 use CakeDC\Datatables\Datatables;
@@ -45,10 +46,16 @@ class DatatableHelper extends Helper
         //complete callback function
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
+        'autoWidth' => false,
+        'tableCss' => [
+            'width' => '100%',
+            'table-layout' => 'fixed',
+            'word-wrap' => 'break-word',
+        ],
     ];
 
+    // @todo change to Text::insert format
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
-        
         var api = this.api();
 
         // For each column
@@ -96,6 +103,7 @@ class DatatableHelper extends Helper
             });
     COLUMN_SEARCH_CONFIGURATION;
 
+    // @todo change to Text::insert format
     private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#%s').on( 'keyup click', function () {
             $('#%s').DataTable().search(
@@ -104,6 +112,7 @@ class DatatableHelper extends Helper
         });
     GENERIC_SEARCH_CONFIGURATION;
 
+    // @todo change to Text::insert format
     private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
         $('#%s thead tr')
             .clone(true)
@@ -118,49 +127,50 @@ class DatatableHelper extends Helper
      */
     private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // API callback
-        %s
+        :getDataMethod
 
         // Generic search
-        %s
+        :searchTemplate
 
         // Datatables configuration
         $(() => {
 
             //@todo use configuration for multicolumn filters
-            %s
+            :columnSearchTemplate
             
-            $('#%s').DataTable({
+            const dt = $('#:tagId');
+            
+            dt.DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
-                autoWidth: false,
+                autoWidth: :autoWidth,
                 ajax: getData(),
                 //searching: false,
-                pageLength: %s,
-                processing: %s,
-                serverSide: %s,
+                pageLength: :pageLength,
+                processing: :processing,
+                serverSide: :serverSide,
                 //@todo: add option to select the paging type
                 //pagingType: "simple",
                 columns: [
-                    %s
+                    :configColumns
                 ],
                 columnDefs: [
-                    %s
+                    :definitionColumns
                 ],
-                language: %s,
-                lengthMenu: %s,
+                language: :language,
+                lengthMenu: :lengthMenu,
                 //@todo add function callback in callback Datatable function
-                drawCallback: %s,
+                drawCallback: :drawCallback,
                 //@todo use configuration instead  
                 initComplete: function () { 
-
                     //onComplete
-                    %s
-
+                    :onCompleteCallback
                     //column search
-                    %s
-
+                    :columnSearch
                 },
             });
+
+            dt.css(:tableCss);
         });
     DATATABLE_CONFIGURATION;
 
@@ -333,22 +343,28 @@ class DatatableHelper extends Helper
             $searchTemplate = '';
         }
 
-        return sprintf(
+        // @todo change values to config _default
+        return Text::insert(
             $this->datatableConfigurationTemplate,
-            $this->getDataTemplate,
-            $searchTemplate,
-            $columnSearchTemplate,
-            $tagId,
-            $this->getConfig('pageLentgh') ?? '10',
-            $this->getConfig('processing') ? 'true' : 'false',
-            $this->getConfig('serverSide') ? 'true' : 'false',
-            $this->configColumns,
-            $this->definitionColumns,
-            json_encode($this->getConfig('language')),
-            json_encode($this->getConfig('lengthMenu')),
-            $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
-            $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
-            $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
+            [
+                'getDataMethod' => $this->getDataTemplate,
+                'searchTemplate' => $searchTemplate,
+                'columnSearchTemplate' => $columnSearchTemplate,
+                'tagId' => $tagId,
+                'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
+                'pageLength' => $this->getConfig('pageLentgh') ?? '10',
+                'processing' => $this->getConfig('processing') ? 'true' : 'false',
+                'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
+                'configColumns' => $this->configColumns,
+                'definitionColumns' => $this->definitionColumns,
+                'language' => json_encode($this->getConfig('language')),
+                'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
+                'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
+                'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
+                'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
+                'tableCss' => json_encode($this->getConfig('tableCss')),
+            ]
+
         );
     }
 
