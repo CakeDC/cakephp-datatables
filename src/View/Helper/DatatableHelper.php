@@ -12,6 +12,8 @@ use CakeDC\Datatables\Datatables;
 use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
+use function PHPUnit\Framework\throwException;
+
 /**
  * Datatable helper
  *
@@ -35,10 +37,11 @@ class DatatableHelper extends Helper
         'columnSearch' => true,
         //true => use default input search, false => use externalSearchInputId input search field
         'search' => true,
+        'searchHeadersType' => null,
         // set an external input to act as search
         'externalSearchInputId' => null,
         // extra fields to inject in ajax call, for example CSRF token, additional ids, etc
-        'extraFields' => [],
+        'extraFields' => null,
         //draw callback function
         //@todo add function callback in callback Datatable function
         'drawCallback' => null,
@@ -48,52 +51,83 @@ class DatatableHelper extends Helper
     ];
 
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
-        
+
         var api = this.api();
+
+        var columnsSearch = %s;   
 
         // For each column
         api
-            .columns()
-            .eq(0)
-            .each(function (colIdx) {
-                // Set the header cell to contain the input element
-                var cell = $('.filters th').eq(
-                    $(api.column(colIdx).header()).index()
-                );
-                var title = $(cell).text();
-                $(cell).html('<input type="text" style="width: 100%%;" placeholder="' + title + '" />');
-
-                // On every keypress in this input
-                $(
-                    'input',
-                    $('.filters th').eq($(api.column(colIdx).header()).index())
-                )
-                .off('keyup change')
-                .on('keyup change', function (e) {
-                    e.stopPropagation();
-
-                    // Get the search value
-                    $(this).attr('title', $(this).val());
-                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
-
-                    var cursorPosition = this.selectionStart;
-                    // Search the column for that value
-                    api
-                        .column(colIdx)
-                        .search(
-                            this.value != ''
-                                ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                : '',
-                            this.value != '',
-                            this.value == ''
+        .columns()
+        .eq(0)
+        .each(function (colIdx) {
+            var cell = $('.filters th').eq(
+                $(api.column(colIdx).header()).index()
+            );
+            switch (columnsSearch[colIdx].type) {
+                case 'select' : 
+                        cell.html('<select class="form-control input-sm"><option value=""></option></select>');
+                        columnsSearch[colIdx].data.forEach(function (data) {
+                            $(
+                                'select',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            ).append(
+                                '<option value="' + data.id + '">' + data.name + '</option>'
+                            );
+                        });
+                        $(
+                            'select',
+                            $('.filters th').eq($(api.column(colIdx).header()).index())
                         )
-                        .draw();
-
-                    $(this)
-                        .focus()[0]
-                        .setSelectionRange(cursorPosition, cursorPosition);
-                });
-            });
+                        .on('change', function () {
+                            api.column(colIdx).search(this.value).draw();
+                        });
+                    break;
+                
+                case 'date':
+                        cell.html('<input type="text" class="form-control input-sm datepicker" placeholder="'+ cell.text() +'" />');
+                        cell.on('keyup change', function () {
+                            api.column(colIdx).search(this.value).draw();
+                        });
+                    break;
+                case 'input':
+                case 'default':
+                    case 'input':
+                        cell.html('<input type="text" class="form-control input-sm" placeholder="'+ cell.text() +'" />');
+                        $(
+                            'input',
+                            $('.filters th').eq($(api.column(colIdx).header()).index())
+                        )
+                        .off('keyup change')
+                        .on('keyup change', function (e) {
+                            e.stopPropagation();
+        
+                            // Get the search value
+                            $(this).attr('title', $(this).val());
+                            var regexr = '({search})'; //$(this).parents('th').find('select').val();
+        
+                            var cursorPosition = this.selectionStart;
+                            // Search the column for that value
+                            api
+                                .column(colIdx)
+                                .search(
+                                    this.value != ''
+                                        ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                        : '',
+                                    this.value != '',
+                                    this.value == ''
+                                )
+                                .draw();
+        
+                            $(this)
+                                .focus()[0]
+                                .setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    break;
+            }
+            
+      
+        });
     COLUMN_SEARCH_CONFIGURATION;
 
     private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
@@ -189,6 +223,11 @@ class DatatableHelper extends Helper
      * @var string[]
      */
     private $definitionColumns = [];
+
+     /**
+     * @var string[]
+     */
+    private $searchHeadersTypes =[];
 
     public function __construct(View $view, array $config = [])
     {
@@ -311,16 +350,32 @@ class DatatableHelper extends Helper
             $this->setGetDataUrl();
         }
 
+        // type of search Headers
+        if ( $this->getConfig('searchHeadersType') !== null) {
+            $this->setTableTypeSearch($this->Config('searchHeadersType'));
+        } elseif ($this->searchHeadersTypes !== null) {
+            $this->setTableTypeSearch($this->searchHeadersTypes);
+        } else {
+            throw new MissConfiguredException(__('Search headers type not configured'));
+        }
+
+     
+  
         $this->processColumnRenderCallbacks();
         $this->processColumnDefinitionsCallbacks();
+        $this->searchHeadersTypes= $this->processColumnTypeSearch();
+       
         $this->validateConfigurationOptions();
+
+
+        $this->columnSearchTemplate = sprintf($this->columnSearchTemplate, $this->searchHeadersTypes);
 
         if ($this->getConfig('columnSearch')) {
             $columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
         } else {
             $columnSearchTemplate = '';
         }
-
+ 
         if (!$this->getConfig('search')) {
             $searchInput = $this->getConfig('externalSearchInputId');
             $searchTemplate = sprintf($this->genericSearchTemplate, $searchInput, $tagId, $searchInput);
@@ -364,6 +419,38 @@ class DatatableHelper extends Helper
     }
 
     /**
+     * Loop types into javascript format.
+     */
+    protected function processColumnTypeSearch() {
+
+        $rows = [];
+        foreach ($this->searchHeadersTypes as $definition) {
+            $parts = [];
+            
+                foreach ($definition as $key => $val) {
+                    if ($key=='data') {
+                        
+                        if (!empty($val) and is_array($val)) {    
+                            $dataPars = [];
+                           
+                            foreach ($val as $v) {
+                                $dataPars[] = "{'id': '".$v['id']."', 'name': '".$v['name']."'}";
+                            }
+                            $data = '['. implode(',', $dataPars) .']';     
+                        } else {
+                            $data = '""';
+                        }
+                        $parts[] = "'{$key}': {$data}";
+                    } else {  
+                        $parts[] = "'{$key}': '{$val}'"; 
+                    }
+                }
+                $rows[] = '{'. implode(',', $parts) .'}';  
+        }
+        return '['. implode(',', $rows) .']';
+    }
+
+    /**
      * Loop extra fields to inject in ajax call to server
      */
     protected function processExtraFields()
@@ -374,11 +461,12 @@ class DatatableHelper extends Helper
             foreach ($definition as $key => $val) {
                 $parts[] = "'{$key}': {$val}";
             }
-            $rows[] = implode(',', $parts);
+            $rows[] = implode(',', $parts);   
         }
-
         return implode(',', $rows);
     }
+
+
 
     /**
      * Loop columns definitions to set properties inside ColumnDefs as orderable or searchable
@@ -502,4 +590,40 @@ class DatatableHelper extends Helper
 
         return $this->Html->tableHeaders($tableHeaders, $headersAttrsTr, $headersAttrsTh);
     }
+
+    /**
+     * Put Definition of types of search in headers
+     * 
+     * @param iterable|null $tableSearchHeaders
+     * 
+     */
+
+     public function setTableTypeSearch(?iterable $tableSearchHeaders = null):void
+     {
+        
+        if ($tableSearchHeaders === null) {
+            $this->searchHeadersTypes= $this->fillDefaulTypes(count($this->dataKeys));
+        } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
+            
+            throw new MissConfiguredException (__('Number of columns in search headers must be equal to number of columns in searchable columns'));
+        } else {
+            $this->searchHeadersTypes = $tableSearchHeaders;
+        }
+     
+        return;
+     }
+
+     public function getSearchHedadersTypes () {
+            return $this->searchHeadersTypes;
+     }
+
+     private function fillDefaulTypes(int $count):array
+     {
+        $searchTypes = [];
+        for ($i = 0; $i < $count; $i++) {
+            $searchTypes[] = ['type'=>'input', 'data'=>[]];
+        }
+        
+        return $searchTypes;
+     }
 }
