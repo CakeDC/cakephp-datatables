@@ -1,18 +1,21 @@
 <?php
-//@todo check width not working
+/**
+ * DatatableHelper class helper to generate datatable.
+ *
+ * @todo check width not working
+ * PHP version 7.4
+ */
 
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
 
-use Cake\Utility\Inflector;
-use Cake\View\Helper;
-use Cake\View\View;
-use CakeDC\Datatables\Datatables;
-use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
-
-use function PHPUnit\Framework\throwException;
+use Datatables\Exception\MissConfiguredException;
+use Cake\View\View;
+use Cake\View\Helper;
+use Cake\Utility\Inflector;
+use CakeDC\Datatables\Datatables;
 
 /**
  * Datatable helper
@@ -47,7 +50,6 @@ class DatatableHelper extends Helper
         'drawCallback' => null,
         //complete callback function
         'onCompleteCallback' => null,
-
     ];
 
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
@@ -111,12 +113,12 @@ class DatatableHelper extends Helper
                             api
                                 .column(colIdx)
                                 .search(
-                                    this.value != ''
-                                        ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                        : '',
-                                    this.value != '',
-                                    this.value == ''
-                                )
+                                    this.value != ''? 
+                                        regexr.replace('{search}', 
+                                            '(((' + this.value + ')))'): '',
+                                            this.value != '',
+                                            this.value == ''
+                                        )
                                 .draw();
         
                             $(this)
@@ -225,10 +227,19 @@ class DatatableHelper extends Helper
     private $definitionColumns = [];
 
      /**
-     * @var string[]
-     */
+      * @var string[]
+      */
     private $searchHeadersTypes =[];
 
+    /**
+     *  Inicializate function
+     * 
+     * @param  View $view
+     * @param  array $config
+     * 
+     * @return void 
+     */
+    
     public function __construct(View $view, array $config = [])
     {
         if (!isset($config['lengthMenu'])) {
@@ -240,9 +251,11 @@ class DatatableHelper extends Helper
     /**
      * set value of congig variable to value passed as param
      *
-     * @param string|array $key key to write
+     * @param string|array $key   key to write
      * @param string|array $value value to write
-     * @param bool $merge merge
+     * @param bool         $merge merge
+     * 
+     * @return void
      */
     public function setConfigKey($key, $value = null, $merge = true)
     {
@@ -309,7 +322,6 @@ class DatatableHelper extends Helper
     {
         if ($rowActions) {
             $this->rowActions = $rowActions;
-
             return;
         }
 
@@ -341,7 +353,7 @@ class DatatableHelper extends Helper
     /**
      * Get Datatable initialization script with options configured.
      *
-     * @param string $tagId
+     * @param  string $tagId
      * @return string
      */
     public function getDatatableScript(string $tagId): string
@@ -350,24 +362,11 @@ class DatatableHelper extends Helper
             $this->setGetDataUrl();
         }
 
-        // type of search Headers
-        if ( $this->getConfig('searchHeadersType') !== null) {
-            $this->setTableTypeSearch($this->Config('searchHeadersType'));
-        } elseif ($this->searchHeadersTypes !== null) {
-            $this->setTableTypeSearch($this->searchHeadersTypes);
-        } else {
-            throw new MissConfiguredException(__('Search headers type not configured'));
-        }
-
-     
-  
         $this->processColumnRenderCallbacks();
         $this->processColumnDefinitionsCallbacks();
         $this->searchHeadersTypes= $this->processColumnTypeSearch();
-       
         $this->validateConfigurationOptions();
-
-
+        
         $this->columnSearchTemplate = sprintf($this->columnSearchTemplate, $this->searchHeadersTypes);
 
         if ($this->getConfig('columnSearch')) {
@@ -421,30 +420,37 @@ class DatatableHelper extends Helper
     /**
      * Loop types into javascript format.
      */
-    protected function processColumnTypeSearch() {
+    protected function processColumnTypeSearch()
+    {
 
+        if ($this->getConfig('searchHeadersType') !== null) {
+            $this->setTableTypeSearch($this->Config('searchHeadersType'));
+        } elseif ($this->searchHeadersTypes === null) {
+            throw new MissConfiguredException(__('Search headers type not configured'));
+        }
+        
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
             $parts = [];
             
-                foreach ($definition as $key => $val) {
-                    if ($key=='data') {
+            foreach ($definition as $parKey => $parVal) {
+                if ($parKey=='data') {
                         
-                        if (!empty($val) and is_array($val)) {    
-                            $dataPars = [];
+                    if (!empty($parVal) and is_array($parVal)) {    
+                        $dataPars = [];
                            
-                            foreach ($val as $v) {
-                                $dataPars[] = "{'id': '".$v['id']."', 'name': '".$v['name']."'}";
-                            }
-                            $data = '['. implode(',', $dataPars) .']';     
-                        } else {
-                            $data = '""';
+                        foreach ($parVal as $v) {
+                            $dataPars[] = "{'id': '".$v['id']."', 'name': '".$v['name']."'}";
                         }
-                        $parts[] = "'{$key}': {$data}";
-                    } else {  
-                        $parts[] = "'{$key}': '{$val}'"; 
+                        $data = '['. implode(',', $dataPars) .']';     
+                    } else {
+                        $data = '""';
                     }
+                    $parts[] = "'{$parKey}': {$data}";
+                } else {  
+                    $parts[] = "'{$parKey}': '{$parVal}'"; 
                 }
+            }
                 $rows[] = '{'. implode(',', $parts) .'}';  
         }
         return '['. implode(',', $rows) .']';
@@ -465,8 +471,6 @@ class DatatableHelper extends Helper
         }
         return implode(',', $rows);
     }
-
-
 
     /**
      * Loop columns definitions to set properties inside ColumnDefs as orderable or searchable
@@ -534,26 +538,26 @@ class DatatableHelper extends Helper
         return $links;
     }
 
-
     /**
      * Format link with specified options from links array.
      *
      * @param array $link
+     * 
      * @return string
      */
     protected function processActionLink(array $link): string
     {
         switch ($link['type'] ?? null) {
-            case Datatables::LINK_TYPE_DELETE:
-            case Datatables::LINK_TYPE_PUT:
-            case Datatables::LINK_TYPE_POST:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
-                break;
+        case Datatables::LINK_TYPE_DELETE:
+        case Datatables::LINK_TYPE_PUT:
+        case Datatables::LINK_TYPE_POST:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
+            break;
 
-            case Datatables::LINK_TYPE_GET:
-            default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
-                break;
+        case Datatables::LINK_TYPE_GET:
+        default:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
+            break;
         }
 
         return $output->link();
@@ -563,10 +567,11 @@ class DatatableHelper extends Helper
      * Get formatted table headers
      *
      * @param iterable|null $tableHeaders
-     * @param bool $format
-     * @param bool $translate
-     * @param array $headersAttrsTr
-     * @param array $headersAttrsTh
+     * @param bool          $format
+     * @param bool          $translate
+     * @param array         $headersAttrsTr
+     * @param array         $headersAttrsTh
+     * 
      * @return string
      */
     public function getTableHeaders(
@@ -594,36 +599,50 @@ class DatatableHelper extends Helper
     /**
      * Put Definition of types of search in headers
      * 
-     * @param iterable|null $tableSearchHeaders
+     * @param iterable|null $tableSearchHeaders - array of search headers
      * 
+     * @return string
      */
-
-     public function setTableTypeSearch(?iterable $tableSearchHeaders = null):void
-     {
-        
+    public function setTableTypeSearch(?iterable $tableSearchHeaders = null):void
+    {
         if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes= $this->fillDefaulTypes(count($this->dataKeys));
+            $this->searchHeadersTypes= $this->_fillDefaulTypes(count($this->dataKeys));
         } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
             
-            throw new MissConfiguredException (__('Number of columns in search headers must be equal to number of columns in searchable columns'));
+            throw new MissConfiguredException(
+                __('Number of columns in search headers must be equal to number of columns in searchable columns')
+            );
         } else {
             $this->searchHeadersTypes = $tableSearchHeaders;
         }
      
         return;
-     }
+    }
 
-     public function getSearchHedadersTypes () {
-            return $this->searchHeadersTypes;
-     }
+    /**
+     * Get variable with type of search in headers
+     * 
+     * @return array
+     */
+    public function getSearchHedadersTypes() 
+    {
+        return $this->searchHeadersTypes;
+    }
 
-     private function fillDefaulTypes(int $count):array
-     {
+    /**
+     * Fill default types for search headers
+     * 
+     * @param int $count Number of columns in searchable columns
+     * 
+     * @return array
+     */
+    private function _fillDefaulTypes(int $count):array
+    {
         $searchTypes = [];
         for ($i = 0; $i < $count; $i++) {
             $searchTypes[] = ['type'=>'input', 'data'=>[]];
         }
         
         return $searchTypes;
-     }
+    }
 }
