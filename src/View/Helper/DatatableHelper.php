@@ -354,6 +354,7 @@ class DatatableHelper extends Helper
      * Get Datatable initialization script with options configured.
      *
      * @param  string $tagId
+     * 
      * @return string
      */
     public function getDatatableScript(string $tagId): string
