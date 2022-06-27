@@ -66,6 +66,7 @@ class DatatableHelper extends Helper
             var cell = $('.filters th').eq(
                 $(api.column(colIdx).header()).index()
             );
+
             switch (columnsSearch[colIdx].type) {
                 case 'select' : 
                         cell.html('<select class="form-control input-sm"><option value=""></option></select>');
@@ -73,23 +74,28 @@ class DatatableHelper extends Helper
                             $(
                                 'select',
                                 $('.filters th').eq($(api.column(colIdx).header()).index())
-                            ).append(
-                                '<option value="' + data.id + '">' + data.name + '</option>'
-                            );
+                            )
+                            .append('<option value="' + data.id + '">' + data.name + '</option>');
                         });
                         $(
                             'select',
                             $('.filters th').eq($(api.column(colIdx).header()).index())
                         )
                         .on('change', function () {
-                            api.column(colIdx).search(this.value).draw();
+                            api
+                                .column(colIdx)
+                                .search(this.value)
+                                .draw();
                         });
                     break;
                 
                 case 'date':
                         cell.html('<input type="text" class="form-control input-sm datepicker" placeholder="'+ cell.text() +'" />');
-                        cell.on('keyup change', function () {
-                            api.column(colIdx).search(this.value).draw();
+                        cell.on('change', function () {
+                            api
+                                .column(colIdx)
+                                .search(this.value)
+                                .draw();
                         });
                     break;
                 case 'input':
@@ -113,12 +119,12 @@ class DatatableHelper extends Helper
                             api
                                 .column(colIdx)
                                 .search(
-                                    this.value != ''? 
-                                        regexr.replace('{search}', 
-                                            '(((' + this.value + ')))'): '',
-                                            this.value != '',
-                                            this.value == ''
-                                        )
+                                    this.value != ''
+                                        ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                        : '',
+                                    this.value != '',
+                                    this.value == ''
+                                )
                                 .draw();
         
                             $(this)
@@ -226,18 +232,18 @@ class DatatableHelper extends Helper
      */
     private $definitionColumns = [];
 
-     /**
-      * @var string[]
-      */
+    /**
+     * @var string[]
+     */
     private $searchHeadersTypes =[];
 
     /**
      *  Inicializate function
-     * 
+     *
      * @param  View $view
      * @param  array $config
-     * 
-     * @return void 
+     *
+     * @return void
      */
     
     public function __construct(View $view, array $config = [])
@@ -254,7 +260,7 @@ class DatatableHelper extends Helper
      * @param string|array $key   key to write
      * @param string|array $value value to write
      * @param bool         $merge merge
-     * 
+     *
      * @return void
      */
     public function setConfigKey($key, $value = null, $merge = true)
@@ -354,7 +360,7 @@ class DatatableHelper extends Helper
      * Get Datatable initialization script with options configured.
      *
      * @param  string $tagId
-     * 
+     *
      * @return string
      */
     public function getDatatableScript(string $tagId): string
@@ -423,7 +429,6 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-
         if ($this->getConfig('searchHeadersType') !== null) {
             $this->setTableTypeSearch($this->Config('searchHeadersType'));
         } elseif ($this->searchHeadersTypes === null) {
@@ -436,23 +441,22 @@ class DatatableHelper extends Helper
             
             foreach ($definition as $parKey => $parVal) {
                 if ($parKey=='data') {
-                        
-                    if (!empty($parVal) and is_array($parVal)) {    
+                    if (!empty($parVal) and is_array($parVal)) {
                         $dataPars = [];
                            
                         foreach ($parVal as $v) {
                             $dataPars[] = "{'id': '".$v['id']."', 'name': '".$v['name']."'}";
                         }
-                        $data = '['. implode(',', $dataPars) .']';     
+                        $data = '['. implode(',', $dataPars) .']';
                     } else {
                         $data = '""';
                     }
                     $parts[] = "'{$parKey}': {$data}";
-                } else {  
-                    $parts[] = "'{$parKey}': '{$parVal}'"; 
+                } else {
+                    $parts[] = "'{$parKey}': '{$parVal}'";
                 }
             }
-                $rows[] = '{'. implode(',', $parts) .'}';  
+            $rows[] = '{'. implode(',', $parts) .'}';
         }
         return '['. implode(',', $rows) .']';
     }
@@ -468,7 +472,7 @@ class DatatableHelper extends Helper
             foreach ($definition as $key => $val) {
                 $parts[] = "'{$key}': {$val}";
             }
-            $rows[] = implode(',', $parts);   
+            $rows[] = implode(',', $parts);
         }
         return implode(',', $rows);
     }
@@ -543,7 +547,7 @@ class DatatableHelper extends Helper
      * Format link with specified options from links array.
      *
      * @param array $link
-     * 
+     *
      * @return string
      */
     protected function processActionLink(array $link): string
@@ -572,7 +576,7 @@ class DatatableHelper extends Helper
      * @param bool          $translate
      * @param array         $headersAttrsTr
      * @param array         $headersAttrsTh
-     * 
+     *
      * @return string
      */
     public function getTableHeaders(
@@ -599,9 +603,9 @@ class DatatableHelper extends Helper
 
     /**
      * Put Definition of types of search in headers
-     * 
+     *
      * @param iterable|null $tableSearchHeaders - array of search headers
-     * 
+     *
      * @return string
      */
     public function setTableTypeSearch(?iterable $tableSearchHeaders = null):void
@@ -609,7 +613,6 @@ class DatatableHelper extends Helper
         if ($tableSearchHeaders === null) {
             $this->searchHeadersTypes= $this->_fillDefaulTypes(count($this->dataKeys));
         } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
-            
             throw new MissConfiguredException(
                 __('Number of columns in search headers must be equal to number of columns in searchable columns')
             );
@@ -622,19 +625,19 @@ class DatatableHelper extends Helper
 
     /**
      * Get variable with type of search in headers
-     * 
+     *
      * @return array
      */
-    public function getSearchHedadersTypes() 
+    public function getSearchHedadersTypes()
     {
         return $this->searchHeadersTypes;
     }
 
     /**
      * Fill default types for search headers
-     * 
+     *
      * @param int $count Number of columns in searchable columns
-     * 
+     *
      * @return array
      */
     private function _fillDefaulTypes(int $count):array
