@@ -239,6 +239,9 @@ The limitation only select 1 option, and is need write all fields of search.
 
 A example of this array is:
 
+<div style="width:70%">
+    <img src="example-search.png" alt="example of search select" />
+</div>
 
 # Getting the datatable script.
 All you need is to tell the help to create the script for you, pass the tag id to be used for
