@@ -20,5 +20,8 @@
             "CakeDC\\Datatables\\Test\\": "tests/",
             "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
         }
+    },
+    "scripts": {
+        "cs-check": "phpcs --colors -p -s --extensions=php src/ tests/"
     }
 }
