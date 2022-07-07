@@ -13,18 +13,15 @@ composer require cakedc/cakephp-datatables
 ```
 
 ### Load plugin
+# To bake datatable index pages.
+
 ```shell
 bin/cake plugin load CakeDC/Datatables
 ```
 
 # To bake datatable index pages.
 ```shell
-bin/cake bake all Articles --theme Cakedc-datatables
-```
-
-### To overwrite existing index pages.
-```shell
-bin/cake bake all Articles --theme Cakedc-datatables -f
+bin/cake bake all Articles -t CakeDC/Datatables
 ```
 
 # Setting up the datatable fields

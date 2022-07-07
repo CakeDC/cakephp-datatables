@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CakeDC\Datatables\View\Helper;
 
 use Cake\Utility\Inflector;
+use Cake\Utility\Text;
 use Cake\View\Helper;
 use Cake\View\View;
 use CakeDC\Datatables\Datatables;
@@ -49,10 +50,17 @@ class DatatableHelper extends Helper
         'drawCallback' => null,
         //complete callback function
         'onCompleteCallback' => null,
+        'ajaxUrl' => null,
+        'autoWidth' => false,
+        'tableCss' => [
+            'width' => '100%',
+            'table-layout' => 'fixed',
+            'word-wrap' => 'break-word',
+        ],
     ];
 
+    // @todo change to Text::insert format
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
-
         var api = this.api();
 
         var columnsSearch = %s;   
@@ -94,7 +102,8 @@ class DatatableHelper extends Helper
                 case 'input':
                 case 'default':
                     case 'input':
-                        cell.html('<input type="text" class="form-control input-sm" placeholder="'+ cell.text() +'" />');
+                      var title = $(cell).text();
+                        cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                         $(
                             'input',
                             $('.filters th').eq($(api.column(colIdx).header()).index())
@@ -126,11 +135,10 @@ class DatatableHelper extends Helper
                         });
                     break;
             }
-            
-      
         });
     COLUMN_SEARCH_CONFIGURATION;
 
+    // @todo change to Text::insert format
     private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#%s').on( 'keyup click', function () {
             $('#%s').DataTable().search(
@@ -139,6 +147,7 @@ class DatatableHelper extends Helper
         });
     GENERIC_SEARCH_CONFIGURATION;
 
+    // @todo change to Text::insert format
     private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
         $('#%s thead tr')
             .clone(true)
@@ -153,48 +162,50 @@ class DatatableHelper extends Helper
      */
     private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // API callback
-        %s
+        :getDataMethod
 
-        // Generic search         
-        %s
+        // Generic search
+        :searchTemplate
 
         // Datatables configuration
         $(() => {
 
             //@todo use configuration for multicolumn filters
-            %s
+            :columnSearchTemplate
             
-            $('#%s').DataTable({
+            const dt = $('#:tagId');
+            
+            dt.DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
-                ajax: getData(),           
+                autoWidth: :autoWidth,
+                ajax: getData(),
                 //searching: false,
-                pageLength: %s,
-                processing: %s,
-                serverSide: %s,
+                pageLength: :pageLength,
+                processing: :processing,
+                serverSide: :serverSide,
                 //@todo: add option to select the paging type
                 //pagingType: "simple",
                 columns: [
-                    %s
+                    :configColumns
                 ],
                 columnDefs: [
-                    %s                                
-                ],            
-                language: %s,
-                lengthMenu: %s,
+                    :definitionColumns
+                ],
+                language: :language,
+                lengthMenu: :lengthMenu,
                 //@todo add function callback in callback Datatable function
-                drawCallback: %s,
+                drawCallback: :drawCallback,
                 //@todo use configuration instead  
                 initComplete: function () { 
-
                     //onComplete
-                    %s
-
-                    //column search                   
-                    %s
-
+                    :onCompleteCallback
+                    //column search
+                    :columnSearch
                 },
             });
+
+            dt.css(:tableCss);
         });
     DATATABLE_CONFIGURATION;
 
@@ -264,9 +275,9 @@ class DatatableHelper extends Helper
      * @param string|array $url url to ajax call
      * @return void
      */
-    public function setGetDataUrl($url = null)
+    public function setGetDataUrl($defaultUrl = null)
     {
-        $url = (array)$url;
+        $url = (array) $this->getConfig('ajaxUrl', $defaultUrl);
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Url->build($url);
 
@@ -274,22 +285,26 @@ class DatatableHelper extends Helper
             $extraFields = $this->processExtraFields();
             //@todo change to async or anonymous js function
             $this->getDataTemplate = <<<GET_DATA
-            function getData() {                
+            let getData = async () => {
                 return {
-                    url:'{$url}',    
+                    url:'{$url}',
                     data: function ( d ) {
-                            return $.extend( {}, d, {                            
+                            return $.extend( {}, d, {
                                 $extraFields
                             });
-                        }                            
-                }      
-            }    
+                        }
+                }
+            };
             GET_DATA;
         } else {
+            // @todo setConfig type POST
             $this->getDataTemplate = <<<GET_DATA
                 let getData = async () => {
-                    let res = await fetch('{$url}')
-                }
+                    return {
+                        url:'{$url}',
+                        type: 'POST',
+                    }
+                };
             GET_DATA;
         }
     }
@@ -335,7 +350,7 @@ class DatatableHelper extends Helper
         $this->rowActions = [
             'name' => 'actions',
             'orderable' => 'false',
-            'width' => '30px',
+            'width' => '60px',
             //@todo: provide template customization for row actions default labels
             'links' => [
                 [
@@ -388,22 +403,28 @@ class DatatableHelper extends Helper
             $searchTemplate = '';
         }
 
-        return sprintf(
+        // @todo change values to config _default
+        return Text::insert(
             $this->datatableConfigurationTemplate,
-            $this->getDataTemplate,
-            $searchTemplate,
-            $columnSearchTemplate,
-            $tagId,
-            $this->getConfig('pageLentgh') ?? '10',
-            $this->getConfig('processing') ? 'true' : 'false',
-            $this->getConfig('serverSide') ? 'true' : 'false',
-            $this->configColumns,
-            $this->definitionColumns,
-            json_encode($this->getConfig('language')),
-            json_encode($this->getConfig('lengthMenu')),
-            $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
-            $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
-            $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
+            [
+                'getDataMethod' => $this->getDataTemplate,
+                'searchTemplate' => $searchTemplate,
+                'columnSearchTemplate' => $columnSearchTemplate,
+                'tagId' => $tagId,
+                'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
+                'pageLength' => $this->getConfig('pageLentgh') ?? '10',
+                'processing' => $this->getConfig('processing') ? 'true' : 'false',
+                'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
+                'configColumns' => $this->configColumns,
+                'definitionColumns' => $this->definitionColumns,
+                'language' => json_encode($this->getConfig('language')),
+                'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
+                'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
+                'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
+                'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
+                'tableCss' => json_encode($this->getConfig('tableCss')),
+            ]
+
         );
     }
 
@@ -489,7 +510,7 @@ class DatatableHelper extends Helper
                 $parts[] = "'{$key}': {$val}";
             }
             $rows[] = '{' . implode(',', $parts) . '}';
-        }
+        }var title = $(cell).text();
         $this->definitionColumns = implode(',', $rows);
     }
 
@@ -514,14 +535,17 @@ class DatatableHelper extends Helper
                 if (isset($key['links'])) {
                     $output .= "\nrender: function(data, type, obj) { ";
                     $links = $this->processActionLinkList((array)$key['links']);
-                    $output .= 'return ' . implode("\n + ", $links);
-                    $output .= '}';
-                } elseif ($key['render'] ?? null) {
-                    $output .= "render: {$key['render']}";
-                } elseif ($key['orderable'] ?? null) {
-                    $output .= "orderable: {$key['orderable']}";
-                } elseif ($key['width'] ?? null) {
-                    $output .= "width: '{$key['width']}'";
+                    $output .= "return " . implode("\n + ", $links);
+                    $output .= '},';
+                }
+                if ($key['render'] ?? null) {
+                    $output .= "\nrender: {$key['render']},";
+                }
+                if ($key['orderable'] ?? null) {
+                    $output .= "\norderable: {$key['orderable']},";
+                }
+                if ($key['width'] ?? null) {
+                    $output .= "\nwidth: '{$key['width']}',";
                 }
             }
             $output .= '}';
