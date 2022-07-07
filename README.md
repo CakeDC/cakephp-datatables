@@ -13,6 +13,8 @@ composer require cakedc/cakephp-datatables
 ```
 
 ### Load plugin
+# To bake datatable index pages.
+
 ```shell
 bin/cake plugin load CakeDC/Datatables
 ```
@@ -209,6 +211,34 @@ Will produce the following script.
         });
     });
 ```
+
+## Setting the table search type.
+You can configurate the input search for select or for input.
+for configurate this:
+```php
+    $typeOfSearchColumns = [
+        ['type'=> 'select','data' =>[
+                ['id' => '1','name' => '1'],
+                ['id' => '2','name' => '2'],
+            ]
+        ],
+        ['type' => 'input','data' =>''],
+        ['type' => 'input','data' =>''],
+        ['type' => 'input','data' =>''],
+        ['type' => 'input','data' =>''],
+        ['type' => 'input','data' =>''],
+    ];
+
+    $this->Datatable->setTableTypeSearch($typeOfSeachColumns);
+```
+
+The limitation only select 1 option, and is need write all fields of search.
+
+A example of this array is:
+
+<div style="width:70%">
+    <img src="example-search.png" alt="example of search select" />
+</div>
 
 # Getting the datatable script.
 All you need is to tell the help to create the script for you, pass the tag id to be used for
