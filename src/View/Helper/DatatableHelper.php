@@ -63,7 +63,7 @@ class DatatableHelper extends Helper
     private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
-        var columnsSearch = %s;   
+        var columnsSearch = :searchTypes;
 
         // For each column
         api
@@ -103,7 +103,7 @@ class DatatableHelper extends Helper
                 case 'default':
                     case 'input':
                       var title = $(cell).text();
-                        cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                        cell.html('<input type="text" with:100%; placeholder="'+ title +'" />');
                         $(
                             'input',
                             $('.filters th').eq($(api.column(colIdx).header()).index())
@@ -170,7 +170,6 @@ class DatatableHelper extends Helper
         // Datatables configuration
         $(() => {
 
-            //@todo use configuration for multicolumn filters
             :columnSearchTemplate
             
             const dt = $('#:tagId');
@@ -388,7 +387,12 @@ class DatatableHelper extends Helper
         $this->searchHeadersTypes = $this->processColumnTypeSearch();
         $this->validateConfigurationOptions();
 
-        $this->columnSearchTemplate = sprintf($this->columnSearchTemplate, $this->searchHeadersTypes);
+        $this->columnSearchTemplate = Text::insert(
+            $this->columnSearchTemplate,
+            [
+                'searchTypes' => $this->searchHeadersTypes,
+            ]
+        );
 
         if ($this->getConfig('columnSearch')) {
             $columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
@@ -510,7 +514,7 @@ class DatatableHelper extends Helper
                 $parts[] = "'{$key}': {$val}";
             }
             $rows[] = '{' . implode(',', $parts) . '}';
-        }var title = $(cell).text();
+        }
         $this->definitionColumns = implode(',', $rows);
     }
 
