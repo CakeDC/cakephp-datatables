@@ -453,9 +453,8 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-        if ($this->getConfig('searchHeadersType') !== null) {
-            $this->setTableTypeSearch($this->Config('searchHeadersType'));
-        } elseif ($this->searchHeadersTypes === null) {
+        $this->setTableTypeSearch($this->Config('searchHeadersType'));
+        if ($this->searchHeadersTypes === null) {
             throw new MissConfiguredException(__('Search headers type not configured'));
         }
 
@@ -642,8 +641,9 @@ class DatatableHelper extends Helper
      */
     public function setTableTypeSearch(?iterable $tableSearchHeaders = null): void
     {
-        if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes = $this->_fillDefaulTypes(count($this->dataKeys));
+        
+        if ($tableSearchHeaders === []) {
+            $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
         } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
             throw new MissConfiguredException(
                 __('Number of columns in search headers must be equal to number of columns in searchable columns')
@@ -669,7 +669,7 @@ class DatatableHelper extends Helper
      * @param int $count Number of columns in searchable columns
      * @return array
      */
-    private function _fillDefaulTypes(int $count): array
+    protected function fillDefaulTypes(int $count): array
     {
         $searchTypes = [];
         for ($i = 0; $i < $count; $i++) {
