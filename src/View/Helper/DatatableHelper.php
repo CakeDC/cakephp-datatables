@@ -394,14 +394,16 @@ class DatatableHelper extends Helper
             ]
         );
 
-        if ($this->getConfig('columnSearch')) {
+        if ($this->getConfig('columnSearch'))
+        {
             $columnSearchTemplate = Text::insert(
                 $this->columnSearchHeaderTemplate,
                 [
                     'tagId' => $tagId,
                 ]
+
             );
-        //$columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
+            //$columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
         } else {
             $columnSearchTemplate = '';
         }
@@ -434,6 +436,7 @@ class DatatableHelper extends Helper
                 'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
                 'tableCss' => json_encode($this->getConfig('tableCss')),
             ]
+
         );
     }
 
@@ -458,10 +461,12 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-        if ($this->searchHeadersTypes === null) {
-            throw new MissConfiguredException(__('Search headers type not configured'));
+        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) { 
+            $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
-
+        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
+            $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
+        }
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
             $parts = [];
