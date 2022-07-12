@@ -60,10 +60,10 @@ class DatatableHelper extends Helper
     ];
 
     // @todo change to Text::insert format
-    private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
+    protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
-        var columnsSearch = :searchTypes;
+        var columnsSearch = :columnTypes;   
 
         // For each column
         api
@@ -103,7 +103,7 @@ class DatatableHelper extends Helper
                 case 'default':
                     case 'input':
                       var title = $(cell).text();
-                        cell.html('<input type="text" with:100%; placeholder="'+ title +'" />');
+                        cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                         $(
                             'input',
                             $('.filters th').eq($(api.column(colIdx).header()).index())
@@ -147,12 +147,11 @@ class DatatableHelper extends Helper
         });
     GENERIC_SEARCH_CONFIGURATION;
 
-    // @todo change to Text::insert format
     private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
-        $('#%s thead tr')
+        $('#:tagId thead tr')
             .clone(true)
             .addClass('filters')
-            .appendTo('#%s thead');
+            .appendTo('#:tagId thead');
     COLUMN_SEARCH_HEADER_CONFIGURATION;
 
     /**
@@ -170,6 +169,7 @@ class DatatableHelper extends Helper
         // Datatables configuration
         $(() => {
 
+            //@todo use configuration for multicolumn filters
             :columnSearchTemplate
             
             const dt = $('#:tagId');
@@ -390,12 +390,20 @@ class DatatableHelper extends Helper
         $this->columnSearchTemplate = Text::insert(
             $this->columnSearchTemplate,
             [
-                'searchTypes' => $this->searchHeadersTypes,
+                'columnTypes' => ($this->searchHeadersTypes ?: ''),
             ]
         );
 
-        if ($this->getConfig('columnSearch')) {
-            $columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
+        if ($this->getConfig('columnSearch'))
+        {
+            $columnSearchTemplate = Text::insert(
+                $this->columnSearchHeaderTemplate,
+                [
+                    'tagId' => $tagId,
+                ]
+
+            );
+            //$columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
         } else {
             $columnSearchTemplate = '';
         }
@@ -453,7 +461,7 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-        $this->setTableTypeSearch($this->Config('searchHeadersType'));
+        $this->setTableTypeSearch($this->getConfig('searchHeadersType'));
         if ($this->searchHeadersTypes === null) {
             throw new MissConfiguredException(__('Search headers type not configured'));
         }
@@ -636,13 +644,12 @@ class DatatableHelper extends Helper
     /**
      * Put Definition of types of search in headers
      *
-     * @param iterable|null $tableSearchHeaders - array of search headers
+     * @param array|null $tableSearchHeaders - array of search headers
      * @return void
      */
-    public function setTableTypeSearch(?iterable $tableSearchHeaders = null): void
+    public function setTableTypeSearch(?array $tableSearchHeaders = null): void
     {
-        
-        if ($tableSearchHeaders === []) {
+        if ($tableSearchHeaders === null) {
             $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
         } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
             throw new MissConfiguredException(
@@ -669,13 +676,12 @@ class DatatableHelper extends Helper
      * @param int $count Number of columns in searchable columns
      * @return array
      */
-    protected function fillDefaulTypes(int $count): array
+    private function fillDefaulTypes(int $count): array
     {
         $searchTypes = [];
         for ($i = 0; $i < $count; $i++) {
             $searchTypes[] = ['type' => 'input', 'data' => []];
         }
-
         return $searchTypes;
     }
 }
