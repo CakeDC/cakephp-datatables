@@ -461,11 +461,12 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-        $this->setTableTypeSearch($this->getConfig('searchHeadersType'));
-        if ($this->searchHeadersTypes === null) {
-            throw new MissConfiguredException(__('Search headers type not configured'));
+        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) { 
+            $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
-
+        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
+            $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
+        }
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
             $parts = [];
@@ -649,12 +650,12 @@ class DatatableHelper extends Helper
      */
     public function setTableTypeSearch(?array $tableSearchHeaders = null): void
     {
+        $defaultTypeSearch = $this->fillDefaulTypes(count($this->dataKeys));
         if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
-        } elseif (count($tableSearchHeaders) != count($this->dataKeys)) {
-            throw new MissConfiguredException(
-                __('Number of columns in search headers must be equal to number of columns in searchable columns')
-            );
+            $this->searchHeadersTypes = $defaultTypeSearch;
+        } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
+            $this->searchHeadersTypes = $tableSearchHeaders + $defaultTypeSearch;
+            ksort($this->searchHeadersTypes);
         } else {
             $this->searchHeadersTypes = $tableSearchHeaders;
         }
@@ -676,12 +677,13 @@ class DatatableHelper extends Helper
      * @param int $count Number of columns in searchable columns
      * @return array
      */
-    private function fillDefaulTypes(int $count): array
+    protected function fillDefaulTypes(int $count): array
     {
         $searchTypes = [];
         for ($i = 0; $i < $count; $i++) {
             $searchTypes[] = ['type' => 'input', 'data' => []];
         }
+
         return $searchTypes;
     }
 }
