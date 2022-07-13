@@ -118,9 +118,23 @@ class DatatableHelper extends Helper
                         break;
                     
                     case 'date':
-                            cell.html('<input type="text" class="form-control input-sm datepicker" placeholder="'+ cell.text() +'" />');
-                            cell.on('keyup change', function () {
-                                api.column(colIdx).search(this.value).draw();
+                            cell.html('<input type="text" id="from' + colIdx + '" placeholder="'+ cell.text() +'" /><br /><input type="text" id="to' + colIdx + '" placeholder="'+ cell.text() +'" />')
+                            $('#from'+colIdx).datepicker()
+                            .on('change', function () {
+                                if($('#to'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                }
+                            });
+                            $('#to'+colIdx).datepicker()
+                            
+                            .on('change', function () {
+                                if($('#from'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                }
                             });
                         break;
                     case 'input':
@@ -229,7 +243,7 @@ class DatatableHelper extends Helper
             });
 
             dt.css(:tableCss);
-            if( jQuery.isFunction( select2 ) ) {
+            if( jQuery.isFunction( 'select2' ) ) {
                 $(function(){
                     $(function(){
                         $('.form-select-multiple').select2();
