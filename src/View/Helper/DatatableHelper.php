@@ -148,8 +148,21 @@ class DatatableHelper extends Helper
                             )
                             .off('keyup change')
                             .on('keyup change', function (e) {
+                                .off('keyup change')
+                            .on('keyup change', function (e) {
+                                let action = execute;
+                                if(action == null || action == false) {
+                                    let execute = true;
+                                    setTimeout(function () {
+                                        let execute = false;
+                                    }, :delay);
+                                } else {
+                                    if(action == true) {
+                                        return;
+                                    }
+                                }
                                 e.stopPropagation();
-            
+                                console.log(action);
                                 // Get the search value
                                 $(this).attr('title', $(this).val());
                                 var regexr = '({search})'; //$(this).parents('th').find('select').val();
