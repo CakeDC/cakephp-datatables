@@ -33,8 +33,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate between datatables and CakePHP pagination order
      *
-     * @param \Cake\Http\ServerRequest $request
-     * @param array $settings
+     * @param  \Cake\Http\ServerRequest $request
+     * @param  array                    $settings
      * @return array
      */
     protected function applyOrder(ServerRequest $request, array $settings): array
@@ -59,8 +59,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate limit and offset from datatables
      *
-     * @param \Cake\Http\ServerRequest $request
-     * @param array $settings
+     * @param  \Cake\Http\ServerRequest $request
+     * @param  array                    $settings
      * @return array
      */
     protected function applyLimits(ServerRequest $request, array $settings): array
@@ -81,7 +81,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate the CakePHP pagination paging attribute into response keys for the datatables to consume
      *
-     * @param $resultSet
+     * @param  $resultSet
      * @return void
      */
     public function prepareResponse($resultSet): void
@@ -90,17 +90,21 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         if (is_array($pagingData) && count($pagingData) === 1) {
             $pagingData = reset($pagingData);
         }
-        $this->getController()->set([
+        $this->getController()->set(
+            [
             'data' => $resultSet,
             'recordsTotal' => $pagingData['count'] ?? 0,
             'recordsFiltered' => $pagingData['count'] ?? 0,
-        ]);
-        $this->getController()->viewBuilder()->setOption('serialize', [
+            ]
+        );
+        $this->getController()->viewBuilder()->setOption(
+            'serialize', [
             'data',
             'draw',
             'recordsTotal',
             'recordsFiltered',
-        ]);
+            ]
+        );
     }
 
     /**

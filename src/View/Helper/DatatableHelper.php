@@ -57,14 +57,16 @@ class DatatableHelper extends Helper
             'table-layout' => 'fixed',
             'word-wrap' => 'break-word',
         ],
+        'delay' => 3000,
     ];
 
     // @todo change to Text::insert format
-    private $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
+    protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
         let columnsSearch = :searchTypes;
 
+        const execute = null;
         // For each column
         api
         .columns()
@@ -148,8 +150,6 @@ class DatatableHelper extends Helper
                             )
                             .off('keyup change')
                             .on('keyup change', function (e) {
-                                .off('keyup change')
-                            .on('keyup change', function (e) {
                                 let action = execute;
                                 if(action == null || action == false) {
                                     let execute = true;
@@ -162,7 +162,6 @@ class DatatableHelper extends Helper
                                     }
                                 }
                                 e.stopPropagation();
-                                console.log(action);
                                 // Get the search value
                                 $(this).attr('title', $(this).val());
                                 var regexr = '({search})'; //$(this).parents('th').find('select').val();
@@ -190,20 +189,20 @@ class DatatableHelper extends Helper
         });
     COLUMN_SEARCH_CONFIGURATION;
 
-    private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
+    protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#:searchInput').on( 'keyup click', function () {
-            $('#tagId').DataTable().search(
-                $('#searchInput').val()       
+            $('#:tagId').DataTable().search(
+                $('#:searchInput').val()       
             ).draw();
         });
     GENERIC_SEARCH_CONFIGURATION;
 
     // @todo change to Text::insert format
-    private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
-        $('#%s thead tr')
+    protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
+        $('#:tagId thead tr')
             .clone(true)
             .addClass('filters')
-            .appendTo('#%s thead');
+            .appendTo('#:tagId thead');
     COLUMN_SEARCH_HEADER_CONFIGURATION;
 
     /**
@@ -211,7 +210,7 @@ class DatatableHelper extends Helper
      *
      * @var string
      */
-    private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
+    protected $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // API callback
         :getDataMethod
 
@@ -276,33 +275,33 @@ class DatatableHelper extends Helper
     /**
      * @var string[]
      */
-    private $dataKeys = [];
+    protected $dataKeys = [];
 
     /**
      * @var string
      */
-    private $getDataTemplate;
+    protected $getDataTemplate;
 
     /**
      * @var string
      */
-    private $configColumns;
+    protected $configColumns;
 
     /**
      * @var string[]
      */
-    private $definitionColumns = [];
+    protected $definitionColumns = [];
 
     /**
      * @var string[]
      */
-    private $searchHeadersTypes = [];
+    protected $searchHeadersTypes = [];
 
     /**
      *  Inicializate function
      *
      * @param  \Cake\View\View $view
-     * @param  array $config
+     * @param  array           $config
      * @return void
      */
     public function __construct(View $view, array $config = [])
@@ -316,9 +315,9 @@ class DatatableHelper extends Helper
     /**
      * set value of congig variable to value passed as param
      *
-     * @param string|array $key   key to write
-     * @param string|array $value value to write
-     * @param bool         $merge merge
+     * @param  string|array $key   key to write
+     * @param  string|array $value value to write
+     * @param  bool         $merge merge
      * @return void
      */
     public function setConfigKey($key, $value = null, $merge = true)
@@ -329,7 +328,7 @@ class DatatableHelper extends Helper
     /**
      * Build the get data callback
      *
-     * @param string|array $url url to ajax call
+     * @param  string|array $url url to ajax call
      * @return void
      */
     public function setGetDataUrl($defaultUrl = null)
@@ -369,7 +368,7 @@ class DatatableHelper extends Helper
     /**
      * Set columns definitions as orderable and sortable
      *
-     * @param \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
+     * @param  \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
      * @return void
      */
     public function setDefinitions(iterable $dataDefinitions)
@@ -378,10 +377,10 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * @param \Cake\Collection\Collection $dataKeys data keys to show in datatable
+     * @param  array $dataKeys data keys to show in datatable
      * @return void
      */
-    public function setFields(iterable $dataKeys)
+    public function setFields(?array $dataKeys)
     {
         if (empty($dataKeys)) {
             throw new InvalidArgumentException(__('Couldn\'t get first item'));
@@ -392,10 +391,10 @@ class DatatableHelper extends Helper
     /**
      *  Assing Action to variable
      *
-     * @param iterable $rowActions array of actions to assign to row
+     * @param  array $rowActions array of actions to assign to row
      * @return void
      */
-    public function setRowActions(?iterable $rowActions = null)
+    public function setRowActions(?array $rowActions = null)
     {
         if ($rowActions) {
             $this->rowActions = $rowActions;
@@ -431,7 +430,7 @@ class DatatableHelper extends Helper
     /**
      * Get Datatable initialization script with options configured.
      *
-     * @param  string $tagId     *
+     * @param  string $tagId *
      * @return string
      */
     public function getDatatableScript(string $tagId): string
@@ -449,11 +448,15 @@ class DatatableHelper extends Helper
             $this->columnSearchTemplate,
             [
                 'searchTypes' => ($this->searchHeadersTypes ?: ''),
+                'delay' => $this->getConfig('delay') ? $this->getConfig('delay') : '3000',
             ]
         );
 
         if ($this->getConfig('columnSearch')) {
-            $columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
+            $columnSearchTemplate = Text::insert(
+                $this->columnSearchHeaderTemplate,
+                ['tagId' => $tagId]
+            );
         } else {
             $columnSearchTemplate = '';
         }
@@ -465,7 +468,6 @@ class DatatableHelper extends Helper
                 [
                     'searchInput' => $searchInput,
                     'tagId' => $tagId,
-                    'searchInput' => $searchInput,
                 ]
             );
         } else {
@@ -513,8 +515,8 @@ class DatatableHelper extends Helper
     }
 
     /**
-    * Loop types into javascript format.
-    */
+     * Loop types into javascript format.
+     */
     protected function processColumnTypeSearch()
     {
         if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
@@ -585,7 +587,7 @@ class DatatableHelper extends Helper
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
      *
-     * @todo: refactor into data object to define the column properties accordingly
+     * @todo:  refactor into data object to define the column properties accordingly
      * @return void
      */
     protected function processColumnRenderCallbacks()
@@ -629,7 +631,7 @@ class DatatableHelper extends Helper
     /**
      *  Process links to prepare them for the datatable.
      *
-     * @param array $sourceLinks
+     * @param  array $sourceLinks
      * @return array
      */
     protected function processActionLinkList(array $sourceLinks): array
@@ -645,22 +647,22 @@ class DatatableHelper extends Helper
     /**
      * Format link with specified options from links array.
      *
-     * @param array $link
+     * @param  array $link
      * @return string
      */
     protected function processActionLink(array $link): string
     {
         switch ($link['type'] ?? null) {
-            case Datatables::LINK_TYPE_DELETE:
-            case Datatables::LINK_TYPE_PUT:
-            case Datatables::LINK_TYPE_POST:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
-                break;
+        case Datatables::LINK_TYPE_DELETE:
+        case Datatables::LINK_TYPE_PUT:
+        case Datatables::LINK_TYPE_POST:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
+            break;
 
-            case Datatables::LINK_TYPE_GET:
-            default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
-                break;
+        case Datatables::LINK_TYPE_GET:
+        default:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
+            break;
         }
 
         return $output->link();
@@ -669,15 +671,15 @@ class DatatableHelper extends Helper
     /**
      * Get formatted table headers
      *
-     * @param iterable|null $tableHeaders
-     * @param bool          $format
-     * @param bool          $translate
-     * @param array         $headersAttrsTr
-     * @param array         $headersAttrsTh
+     * @param  array|null $tableHeaders
+     * @param  bool       $format
+     * @param  bool       $translate
+     * @param  array      $headersAttrsTr
+     * @param  array      $headersAttrsTh
      * @return string
      */
     public function getTableHeaders(
-        ?iterable $tableHeaders = null,
+        ?array $tableHeaders = null,
         bool $format = false,
         bool $translate = false,
         array $headersAttrsTr = [],
@@ -701,7 +703,7 @@ class DatatableHelper extends Helper
     /**
      * Put Definition of types of search in headers
      *
-     * @param array|null $tableSearchHeaders - array of search headers
+     * @param  array|null $tableSearchHeaders - array of search headers
      * @return void
      */
     public function setTableTypeSearch(?array $tableSearchHeaders = null): void
@@ -730,7 +732,7 @@ class DatatableHelper extends Helper
     /**
      * Fill default types for search headers
      *
-     * @param array $datakeys Number of columns in searchable columns
+     * @param  array $datakeys Number of columns in searchable columns
      * @return array
      */
     protected function fillDefaulTypes(array $datakeys): array
