@@ -57,14 +57,16 @@ class DatatableHelper extends Helper
             'table-layout' => 'fixed',
             'word-wrap' => 'break-word',
         ],
+        'delay' => 3000,
     ];
 
     // @todo change to Text::insert format
     protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
-        var columnsSearch = :columnTypes;   
+        let columnsSearch = :searchTypes;
 
+        const execute = null;
         // For each column
         api
         .columns()
@@ -73,9 +75,10 @@ class DatatableHelper extends Helper
             var cell = $('.filters th').eq(
                 $(api.column(colIdx).header()).index()
             );
-            switch (columnsSearch[colIdx].type) {
-                case 'select' : 
-                        cell.html('<select class="form-control input-sm"><option value=""></option></select>');
+            if (columnsSearch[colIdx].type !== undefined) {
+                switch (columnsSearch[colIdx].type) {
+                    case 'multiple':
+                        cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
                         columnsSearch[colIdx].data.forEach(function (data) {
                             $(
                                 'select',
@@ -89,65 +92,113 @@ class DatatableHelper extends Helper
                             $('.filters th').eq($(api.column(colIdx).header()).index())
                         )
                         .on('change', function () {
-                            api.column(colIdx).search(this.value).draw();
+                            let select_value = $(
+                                'select option:selected',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            ).toArray().map(item => item.value).join();
+                            api.column(colIdx).search(select_value).draw();
                         });
-                    break;
-                
-                case 'date':
-                        cell.html('<input type="text" class="form-control input-sm datepicker" placeholder="'+ cell.text() +'" />');
-                        cell.on('keyup change', function () {
-                            api.column(colIdx).search(this.value).draw();
-                        });
-                    break;
-                case 'input':
-                case 'default':
+                        break;
+
+                    case 'select' : 
+                            cell.html('<select style="width:100%"><option value=""></option></select>');
+                            columnsSearch[colIdx].data.forEach(function (data) {
+                                $(
+                                    'select',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                ).append(
+                                    '<option value="' + data.id + '">' + data.name + '</option>'
+                                );
+                            });
+                            $(
+                                'select',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            )
+                            .on('change', function () {
+                                api.column(colIdx).search(this.value).draw();
+                            });
+                        break;
+                    
+                    case 'date':
+                            cell.html('<input type="text" id="from' + colIdx + '" placeholder="'+ cell.text() +'" /><br /><input type="text" id="to' + colIdx + '" placeholder="'+ cell.text() +'" />')
+                            $('#from'+colIdx).datepicker()
+                            .on('change', function () {
+                                if($('#to'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                }
+                            });
+                            $('#to'+colIdx).datepicker()
+                            
+                            .on('change', function () {
+                                if($('#from'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                }
+                            });
+                        break;
                     case 'input':
-                      var title = $(cell).text();
-                        cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
-                        $(
-                            'input',
-                            $('.filters th').eq($(api.column(colIdx).header()).index())
-                        )
-                        .off('keyup change')
-                        .on('keyup change', function (e) {
-                            e.stopPropagation();
-        
-                            // Get the search value
-                            $(this).attr('title', $(this).val());
-                            var regexr = '({search})'; //$(this).parents('th').find('select').val();
-        
-                            var cursorPosition = this.selectionStart;
-                            // Search the column for that value
-                            api
-                                .column(colIdx)
-                                .search(
-                                    this.value != ''? 
-                                        regexr.replace('{search}', 
-                                            '(((' + this.value + ')))'): '',
-                                            this.value != '',
-                                            this.value == ''
-                                        )
-                                .draw();
-        
-                            $(this)
-                                .focus()[0]
-                                .setSelectionRange(cursorPosition, cursorPosition);
-                        });
-                    break;
+                    case 'default':
+                        case 'input':
+                        var title = $(cell).text();
+                            cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                            $(
+                                'input',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            )
+                            .off('keyup change')
+                            .on('keyup change', function (e) {
+                                let action = execute;
+                                if(action == null || action == false) {
+                                    let execute = true;
+                                    setTimeout(function () {
+                                        let execute = false;
+                                    }, :delay);
+                                } else {
+                                    if(action == true) {
+                                        return;
+                                    }
+                                }
+                                e.stopPropagation();
+                                // Get the search value
+                                $(this).attr('title', $(this).val());
+                                var regexr = '({search})'; //$(this).parents('th').find('select').val();
+            
+                                var cursorPosition = this.selectionStart;
+                                // Search the column for that value
+                                api
+                                    .column(colIdx)
+                                    .search(
+                                        this.value != ''? 
+                                            regexr.replace('{search}', 
+                                                '(((' + this.value + ')))'): '',
+                                                this.value != '',
+                                                this.value == ''
+                                            )
+                                    .draw();
+            
+                                $(this)
+                                    .focus()[0]
+                                    .setSelectionRange(cursorPosition, cursorPosition);
+                            });
+                        break;
+                }
             }
         });
     COLUMN_SEARCH_CONFIGURATION;
 
-    // @todo change to Text::insert format
-    private $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
-        $('#%s').on( 'keyup click', function () {
-            $('#%s').DataTable().search(
-                $('#%s').val()       
+    protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
+        $('#:searchInput').on( 'keyup click', function () {
+            $('#:tagId').DataTable().search(
+                $('#:searchInput').val()       
             ).draw();
         });
     GENERIC_SEARCH_CONFIGURATION;
 
-    private $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
+    // @todo change to Text::insert format
+    protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
         $('#:tagId thead tr')
             .clone(true)
             .addClass('filters')
@@ -159,7 +210,7 @@ class DatatableHelper extends Helper
      *
      * @var string
      */
-    private $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
+    protected $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // API callback
         :getDataMethod
 
@@ -169,7 +220,6 @@ class DatatableHelper extends Helper
         // Datatables configuration
         $(() => {
 
-            //@todo use configuration for multicolumn filters
             :columnSearchTemplate
             
             const dt = $('#:tagId');
@@ -205,6 +255,14 @@ class DatatableHelper extends Helper
             });
 
             dt.css(:tableCss);
+            if( jQuery.isFunction( 'select2' ) ) {
+                $(function(){
+                    $(function(){
+                        // for execute the select2 plugin after all events are loaded
+                        $('.form-select-multiple').select2();
+                    });
+                });
+            }
         });
     DATATABLE_CONFIGURATION;
 
@@ -218,33 +276,33 @@ class DatatableHelper extends Helper
     /**
      * @var string[]
      */
-    private $dataKeys = [];
+    protected $dataKeys = [];
 
     /**
      * @var string
      */
-    private $getDataTemplate;
+    protected $getDataTemplate;
 
     /**
      * @var string
      */
-    private $configColumns;
+    protected $configColumns;
 
     /**
      * @var string[]
      */
-    private $definitionColumns = [];
+    protected $definitionColumns = [];
 
     /**
      * @var string[]
      */
-    private $searchHeadersTypes = [];
+    protected $searchHeadersTypes = [];
 
     /**
      *  Inicializate function
      *
      * @param  \Cake\View\View $view
-     * @param  array $config
+     * @param  array           $config
      * @return void
      */
     public function __construct(View $view, array $config = [])
@@ -258,9 +316,9 @@ class DatatableHelper extends Helper
     /**
      * set value of congig variable to value passed as param
      *
-     * @param string|array $key   key to write
-     * @param string|array $value value to write
-     * @param bool         $merge merge
+     * @param  string|array $key   key to write
+     * @param  string|array $value value to write
+     * @param  bool         $merge merge
      * @return void
      */
     public function setConfigKey($key, $value = null, $merge = true)
@@ -271,7 +329,7 @@ class DatatableHelper extends Helper
     /**
      * Build the get data callback
      *
-     * @param string|array $url url to ajax call
+     * @param  string|array $url url to ajax call
      * @return void
      */
     public function setGetDataUrl($defaultUrl = null)
@@ -311,7 +369,7 @@ class DatatableHelper extends Helper
     /**
      * Set columns definitions as orderable and sortable
      *
-     * @param \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
+     * @param  \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
      * @return void
      */
     public function setDefinitions(iterable $dataDefinitions)
@@ -320,10 +378,10 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * @param \Cake\Collection\Collection $dataKeys data keys to show in datatable
+     * @param  array $dataKeys data keys to show in datatable
      * @return void
      */
-    public function setFields(iterable $dataKeys)
+    public function setFields(?array $dataKeys)
     {
         if (empty($dataKeys)) {
             throw new InvalidArgumentException(__('Couldn\'t get first item'));
@@ -334,10 +392,10 @@ class DatatableHelper extends Helper
     /**
      *  Assing Action to variable
      *
-     * @param iterable $rowActions array of actions to assign to row
+     * @param  array $rowActions array of actions to assign to row
      * @return void
      */
-    public function setRowActions(?iterable $rowActions = null)
+    public function setRowActions(?array $rowActions = null)
     {
         if ($rowActions) {
             $this->rowActions = $rowActions;
@@ -373,7 +431,7 @@ class DatatableHelper extends Helper
     /**
      * Get Datatable initialization script with options configured.
      *
-     * @param  string $tagId     *
+     * @param  string $tagId *
      * @return string
      */
     public function getDatatableScript(string $tagId): string
@@ -390,27 +448,29 @@ class DatatableHelper extends Helper
         $this->columnSearchTemplate = Text::insert(
             $this->columnSearchTemplate,
             [
-                'columnTypes' => ($this->searchHeadersTypes ?: ''),
+                'searchTypes' => ($this->searchHeadersTypes ?: ''),
+                'delay' => $this->getConfig('delay') ? $this->getConfig('delay') : '3000',
             ]
         );
 
-        if ($this->getConfig('columnSearch'))
-        {
+        if ($this->getConfig('columnSearch')) {
             $columnSearchTemplate = Text::insert(
                 $this->columnSearchHeaderTemplate,
-                [
-                    'tagId' => $tagId,
-                ]
-
+                ['tagId' => $tagId]
             );
-            //$columnSearchTemplate = sprintf($this->columnSearchHeaderTemplate, $tagId, $tagId);
         } else {
             $columnSearchTemplate = '';
         }
 
         if (!$this->getConfig('search')) {
             $searchInput = $this->getConfig('externalSearchInputId');
-            $searchTemplate = sprintf($this->genericSearchTemplate, $searchInput, $tagId, $searchInput);
+            $searchTemplate = Text::insert(
+                $this->genericSearchTemplate,
+                [
+                    'searchInput' => $searchInput,
+                    'tagId' => $tagId,
+                ]
+            );
         } else {
             $searchTemplate = '';
         }
@@ -436,7 +496,6 @@ class DatatableHelper extends Helper
                 'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
                 'tableCss' => json_encode($this->getConfig('tableCss')),
             ]
-
         );
     }
 
@@ -461,11 +520,11 @@ class DatatableHelper extends Helper
      */
     protected function processColumnTypeSearch()
     {
-        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) { 
+        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
             $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
         if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
-            $this->searchHeadersTypes = $this->fillDefaulTypes(count($this->dataKeys));
+            $this->searchHeadersTypes = $this->fillDefaulTypes($this->dataKeys);
         }
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
@@ -529,7 +588,7 @@ class DatatableHelper extends Helper
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
      *
-     * @todo: refactor into data object to define the column properties accordingly
+     * @todo:  refactor into data object to define the column properties accordingly
      * @return void
      */
     protected function processColumnRenderCallbacks()
@@ -573,7 +632,7 @@ class DatatableHelper extends Helper
     /**
      *  Process links to prepare them for the datatable.
      *
-     * @param array $sourceLinks
+     * @param  array $sourceLinks
      * @return array
      */
     protected function processActionLinkList(array $sourceLinks): array
@@ -589,22 +648,22 @@ class DatatableHelper extends Helper
     /**
      * Format link with specified options from links array.
      *
-     * @param array $link
+     * @param  array $link
      * @return string
      */
     protected function processActionLink(array $link): string
     {
         switch ($link['type'] ?? null) {
-            case Datatables::LINK_TYPE_DELETE:
-            case Datatables::LINK_TYPE_PUT:
-            case Datatables::LINK_TYPE_POST:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
-                break;
+        case Datatables::LINK_TYPE_DELETE:
+        case Datatables::LINK_TYPE_PUT:
+        case Datatables::LINK_TYPE_POST:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
+            break;
 
-            case Datatables::LINK_TYPE_GET:
-            default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
-                break;
+        case Datatables::LINK_TYPE_GET:
+        default:
+            $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
+            break;
         }
 
         return $output->link();
@@ -613,15 +672,15 @@ class DatatableHelper extends Helper
     /**
      * Get formatted table headers
      *
-     * @param iterable|null $tableHeaders
-     * @param bool          $format
-     * @param bool          $translate
-     * @param array         $headersAttrsTr
-     * @param array         $headersAttrsTh
+     * @param  array|null $tableHeaders
+     * @param  bool       $format
+     * @param  bool       $translate
+     * @param  array      $headersAttrsTr
+     * @param  array      $headersAttrsTh
      * @return string
      */
     public function getTableHeaders(
-        ?iterable $tableHeaders = null,
+        ?array $tableHeaders = null,
         bool $format = false,
         bool $translate = false,
         array $headersAttrsTr = [],
@@ -645,12 +704,12 @@ class DatatableHelper extends Helper
     /**
      * Put Definition of types of search in headers
      *
-     * @param array|null $tableSearchHeaders - array of search headers
+     * @param  array|null $tableSearchHeaders - array of search headers
      * @return void
      */
     public function setTableTypeSearch(?array $tableSearchHeaders = null): void
     {
-        $defaultTypeSearch = $this->fillDefaulTypes(count($this->dataKeys));
+        $defaultTypeSearch = $this->fillDefaulTypes($this->dataKeys);
         if ($tableSearchHeaders === null) {
             $this->searchHeadersTypes = $defaultTypeSearch;
         } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
@@ -674,14 +733,18 @@ class DatatableHelper extends Helper
     /**
      * Fill default types for search headers
      *
-     * @param int $count Number of columns in searchable columns
+     * @param  array $datakeys Number of columns in searchable columns
      * @return array
      */
-    protected function fillDefaulTypes(int $count): array
+    protected function fillDefaulTypes(array $datakeys): array
     {
         $searchTypes = [];
-        for ($i = 0; $i < $count; $i++) {
-            $searchTypes[] = ['type' => 'input', 'data' => []];
+        foreach ($datakeys as $key) {
+            if (isset($key['searchable']) && $key['searchable'] == 'false') {
+                $searchTypes[] = [];
+            } else {
+                $searchTypes[] = ['type' => 'input', 'data' => []];
+            }
         }
 
         return $searchTypes;

@@ -100,7 +100,7 @@ class PostLink extends AbstractLink
     }
 
     /**
-     * @param string $input
+     * @param  string $input
      * @return string
      */
     protected function changeQuotes(string $input): string

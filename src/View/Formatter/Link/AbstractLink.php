@@ -26,7 +26,7 @@ class AbstractLink
     }
 
     /**
-     * @param array $config
+     * @param  array $config
      * @return void
      */
     public function initialize(array $config = []): void
