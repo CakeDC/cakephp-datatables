@@ -258,6 +258,7 @@ class DatatableHelper extends Helper
             if( jQuery.isFunction( 'select2' ) ) {
                 $(function(){
                     $(function(){
+                        // for execute the select2 plugin after all events are loaded
                         $('.form-select-multiple').select2();
                     });
                 });
