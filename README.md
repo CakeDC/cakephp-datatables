@@ -212,29 +212,22 @@ Will produce the following script.
     });
 ```
 
-## Setting the table search type.
-You can configurate the input search for select or for input.
-for configurate this:
-```php
-    $typeOfSearchColumns = [
-        ['type'=> 'select','data' =>[
-                ['id' => '1','name' => '1'],
-                ['id' => '2','name' => '2'],
-            ]
-        ],
-        ['type' => 'input','data' =>''],
-        ['type' => 'input','data' =>''],
-        ['type' => 'input','data' =>''],
-        ['type' => 'input','data' =>''],
-        ['type' => 'input','data' =>''],
-    ];
+### types of inputs to search in colunms:
+Now hava 4 types of inputs:
+    input
+    select
+    select multiple
+    date
 
-    $this->Datatable->setTableTypeSearch($typeOfSeachColumns);
+to define the type of search need in definition of columns especificate this array:
 ```
-
-The limitation only select 1 option, and is need write all fields of search.
-
-A example of this array is:
+'searchInput' => [
+            'type' => '',
+            'options' => [
+                    ['id' => 1, 'name' => 'one'],
+            ],
+        ],
+```
 
 <div style="width:70%">
     <img src="example-search.png" alt="example of search select" />

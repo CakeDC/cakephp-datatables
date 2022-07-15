@@ -66,7 +66,6 @@ class DatatableHelper extends Helper
 
         let columnsSearch = :searchTypes;
 
-        const execute = null;
         // For each column
         api
         .columns()
@@ -120,8 +119,9 @@ class DatatableHelper extends Helper
                         break;
                     
                     case 'date':
-                            cell.html('<input type="text" id="from' + colIdx + '" placeholder="'+ cell.text() +'" /><br /><input type="text" id="to' + colIdx + '" placeholder="'+ cell.text() +'" />')
-                            $('#from'+colIdx).datepicker()
+                            cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
+                            $('#from'+colIdx)
+                            .datepicker()
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
@@ -129,8 +129,8 @@ class DatatableHelper extends Helper
                                     api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
                                 }
                             });
-                            $('#to'+colIdx).datepicker()
-                            
+                            $('#to'+colIdx)
+                            .datepicker()
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
@@ -150,17 +150,20 @@ class DatatableHelper extends Helper
                             )
                             .off('keyup change')
                             .on('keyup change', function (e) {
-                                let action = execute;
+                                let action = exeCall;
+                               
+                                
                                 if(action == null || action == false) {
-                                    let execute = true;
+                                    exeCall = true;
                                     setTimeout(function () {
-                                        let execute = false;
+                                        exeCall = false;
                                     }, :delay);
                                 } else {
                                     if(action == true) {
                                         return;
                                     }
                                 }
+                                
                                 e.stopPropagation();
                                 // Get the search value
                                 $(this).attr('title', $(this).val());
@@ -215,6 +218,7 @@ class DatatableHelper extends Helper
         :getDataMethod
 
         // Generic search
+        let exeCall = null;
         :searchTemplate
 
         // Datatables configuration
@@ -223,7 +227,8 @@ class DatatableHelper extends Helper
             :columnSearchTemplate
             
             const dt = $('#:tagId');
-            
+          
+
             dt.DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
@@ -524,8 +529,9 @@ class DatatableHelper extends Helper
             $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
         if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
-            $this->searchHeadersTypes = $this->fillDefaulTypes($this->dataKeys);
+            $this->searchHeadersTypes = $this->fillTypes($this->dataKeys);
         }
+
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
             $parts = [];
@@ -702,25 +708,6 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * Put Definition of types of search in headers
-     *
-     * @param  array|null $tableSearchHeaders - array of search headers
-     * @return void
-     */
-    public function setTableTypeSearch(?array $tableSearchHeaders = null): void
-    {
-        $defaultTypeSearch = $this->fillDefaulTypes($this->dataKeys);
-        if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes = $defaultTypeSearch;
-        } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
-            $this->searchHeadersTypes = $tableSearchHeaders + $defaultTypeSearch;
-            ksort($this->searchHeadersTypes);
-        } else {
-            $this->searchHeadersTypes = $tableSearchHeaders;
-        }
-    }
-
-    /**
      * Get variable with type of search in headers
      *
      * @return array
@@ -736,14 +723,22 @@ class DatatableHelper extends Helper
      * @param  array $datakeys Number of columns in searchable columns
      * @return array
      */
-    protected function fillDefaulTypes(array $datakeys): array
+    protected function fillTypes(array $datakeys): array
     {
         $searchTypes = [];
-        foreach ($datakeys as $key) {
+        foreach ($datakeys as $name => $key) {
+
             if (isset($key['searchable']) && $key['searchable'] == 'false') {
                 $searchTypes[] = [];
             } else {
-                $searchTypes[] = ['type' => 'input', 'data' => []];
+                if (isset($key['searchInput'])) {
+                    $searchTypes[] = [
+                        'type' => $key['searchInput']['type'],
+                        'data' => (isset($key['searchInput']['options'])?$key['searchInput']['options']:[]),
+                    ];
+                } else {
+                    $searchTypes[] = ['type' => 'input', 'data' => []];
+                }
             }
         }
 
