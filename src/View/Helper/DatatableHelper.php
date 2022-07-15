@@ -121,7 +121,7 @@ class DatatableHelper extends Helper
                     case 'date':
                             cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
                             $('#from'+colIdx)
-                            ,datepicker()
+                            .datepicker()
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
@@ -130,7 +130,7 @@ class DatatableHelper extends Helper
                                 }
                             });
                             $('#to'+colIdx)
-                            ,datepicker()
+                            .datepicker()
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
