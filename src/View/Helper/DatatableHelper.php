@@ -120,8 +120,8 @@ class DatatableHelper extends Helper
                         break;
                     
                     case 'date':
-                            cell.html('<input type="text" id="from' + colIdx + '" placeholder="'+ cell.text() +'" /><br /><input type="text" id="to' + colIdx + '" placeholder="'+ cell.text() +'" />')
-                            $('#from'+colIdx).datepicker()
+                            cell.html('<input type="text" id="from' + colIdx + '" class="datepiker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
+                            $('#from'+colIdx)
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
@@ -129,8 +129,7 @@ class DatatableHelper extends Helper
                                     api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
                                 }
                             });
-                            $('#to'+colIdx).datepicker()
-                            
+                            $('#to'+colIdx)
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '') {
                                     api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
@@ -255,11 +254,21 @@ class DatatableHelper extends Helper
             });
 
             dt.css(:tableCss);
-            if( jQuery.isFunction( 'select2' ) ) {
+            if( $.isFunction( 'select2' ) ) {
                 $(function(){
                     $(function(){
                         // for execute the select2 plugin after all events are loaded
                         $('.form-select-multiple').select2();
+                        
+                    });
+                });
+            }
+            if ($.isFunction( 'datepicker' )) {
+                $(function(){
+                    $(function(){
+                        // for execute the select2 plugin after all events are loaded
+                        $('.datepicker').datepicker();
+                        
                     });
                 });
             }
@@ -702,34 +711,6 @@ class DatatableHelper extends Helper
         return $this->Html->tableHeaders($tableHeaders, $headersAttrsTr, $headersAttrsTh);
     }
 
-    /**
-     * Put Definition of types of search in headers
-     *
-     * @param  array|null $tableSearchHeaders - array of search headers
-     * @return void
-     */
-    public function setTableTypeSearch(?array $tableSearchHeaders = null): void
-    {
-        $defaultTypeSearch = $this->fillTypes($this->dataKeys);
-        if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes = $defaultTypeSearch;
-        } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
-            $this->searchHeadersTypes = $tableSearchHeaders + $defaultTypeSearch;
-            ksort($this->searchHeadersTypes);
-        } else {
-            $this->searchHeadersTypes = $tableSearchHeaders;
-        }
-    }
-
-    /**
-     * Get variable with type of search in headers
-     *
-     * @return array
-     */
-    public function getSearchHedadersTypes()
-    {
-        return $this->searchHeadersTypes;
-    }
 
     /**
      * Fill default types for search headers
