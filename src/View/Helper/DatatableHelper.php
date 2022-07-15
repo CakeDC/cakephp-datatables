@@ -524,8 +524,9 @@ class DatatableHelper extends Helper
             $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
         if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
-            $this->searchHeadersTypes = $this->fillDefaulTypes($this->dataKeys);
+            $this->searchHeadersTypes = $this->fillTypes($this->dataKeys);
         }
+
         $rows = [];
         foreach ($this->searchHeadersTypes as $definition) {
             $parts = [];
@@ -709,7 +710,7 @@ class DatatableHelper extends Helper
      */
     public function setTableTypeSearch(?array $tableSearchHeaders = null): void
     {
-        $defaultTypeSearch = $this->fillDefaulTypes($this->dataKeys);
+        $defaultTypeSearch = $this->fillTypes($this->dataKeys);
         if ($tableSearchHeaders === null) {
             $this->searchHeadersTypes = $defaultTypeSearch;
         } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
@@ -736,14 +737,22 @@ class DatatableHelper extends Helper
      * @param  array $datakeys Number of columns in searchable columns
      * @return array
      */
-    protected function fillDefaulTypes(array $datakeys): array
+    protected function fillTypes(array $datakeys): array
     {
         $searchTypes = [];
-        foreach ($datakeys as $key) {
+        foreach ($datakeys as $name => $key) {
+
             if (isset($key['searchable']) && $key['searchable'] == 'false') {
                 $searchTypes[] = [];
             } else {
-                $searchTypes[] = ['type' => 'input', 'data' => []];
+                if (isset($key['searchInput'])) {
+                    $searchTypes[] = [
+                        'type' => $key['searchInput']['type'],
+                        'data' => (isset($key['searchInput']['options'])?$key['searchInput']['options']:[]),
+                    ];
+                } else {
+                    $searchTypes[] = ['type' => 'input', 'data' => []];
+                }
             }
         }
 
