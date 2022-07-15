@@ -711,25 +711,6 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * Put Definition of types of search in headers
-     *
-     * @param  array|null $tableSearchHeaders - array of search headers
-     * @return void
-     */
-    public function setTableTypeSearch(?array $tableSearchHeaders = null): void
-    {
-        $defaultTypeSearch = $this->fillTypes($this->dataKeys);
-        if ($tableSearchHeaders === null) {
-            $this->searchHeadersTypes = $defaultTypeSearch;
-        } elseif (count($tableSearchHeaders) !== count($this->dataKeys)) {
-            $this->searchHeadersTypes = $tableSearchHeaders + $defaultTypeSearch;
-            ksort($this->searchHeadersTypes);
-        } else {
-            $this->searchHeadersTypes = $tableSearchHeaders;
-        }
-    }
-
-    /**
      * Get variable with type of search in headers
      *
      * @return array
