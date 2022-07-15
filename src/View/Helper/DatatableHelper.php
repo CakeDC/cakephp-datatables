@@ -74,33 +74,12 @@ class DatatableHelper extends Helper
             var cell = $('.filters th').eq(
                 $(api.column(colIdx).header()).index()
             );
-            if (columnsSearch[colIdx].type !== undefined) {
-                switch (columnsSearch[colIdx].type) {
-                    case 'multiple':
-                        cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
-                        columnsSearch[colIdx].data.forEach(function (data) {
-                            $(
-                                'select',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
-                            ).append(
-                                '<option value="' + data.id + '">' + data.name + '</option>'
-                            );
-                        });
-                        $(
-                            'select',
-                            $('.filters th').eq($(api.column(colIdx).header()).index())
-                        )
-                        .on('change', function () {
-                            let select_value = $(
-                                'select option:selected',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
-                            ).toArray().map(item => item.value).join();
-                            api.column(colIdx).search(select_value).draw();
-                        });
-                        break;
+            if (columnsSearch[colIdx] !== undefined) {
 
-                    case 'select' : 
-                            cell.html('<select style="width:100%"><option value=""></option></select>');
+                if (columnsSearch[colIdx].type !== undefined) {
+                    switch (columnsSearch[colIdx].type) {
+                        case 'multiple':
+                            cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
@@ -114,79 +93,103 @@ class DatatableHelper extends Helper
                                 $('.filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .on('change', function () {
-                                api.column(colIdx).search(this.value).draw();
+                                let select_value = $(
+                                    'select option:selected',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                ).toArray().map(item => item.value).join();
+                                api.column(colIdx).search(select_value).draw();
                             });
-                        break;
-                    
-                    case 'date':
-                            cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
-                            $('#from'+colIdx)
-                            .datepicker()
-                            .on('change', function () {
-                                if($('#to'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
-                                } else {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
-                                }
-                            });
-                            $('#to'+colIdx)
-                            .datepicker()
-                            .on('change', function () {
-                                if($('#from'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
-                                } else {
-                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
-                                }
-                            });
-                        break;
-                    case 'input':
-                    case 'default':
-                        case 'input':
-                        var title = $(cell).text();
-                            cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
-                            $(
-                                'input',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
-                            )
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                let action = exeCall;
-                               
-                                
-                                if(action == null || action == false) {
-                                    exeCall = true;
-                                    setTimeout(function () {
-                                        exeCall = false;
-                                    }, :delay);
-                                } else {
-                                    if(action == true) {
-                                        return;
+                            break;
+
+                        case 'select' : 
+                                cell.html('<select style="width:100%"><option value=""></option></select>');
+                                columnsSearch[colIdx].data.forEach(function (data) {
+                                    $(
+                                        'select',
+                                        $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    ).append(
+                                        '<option value="' + data.id + '">' + data.name + '</option>'
+                                    );
+                                });
+                                $(
+                                    'select',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                )
+                                .on('change', function () {
+                                    api.column(colIdx).search(this.value).draw();
+                                });
+                            break;
+                        
+                        case 'date':
+                                cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
+                                $('#from'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#to'+colIdx).val() !== '') {
+                                        api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                    } else {
+                                        api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
                                     }
-                                }
+                                });
+                                $('#to'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#from'+colIdx).val() !== '') {
+                                        api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                    } else {
+                                        api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                    }
+                                });
+                            break;
+                        case 'input':
+                        case 'default':
+                            case 'input':
+                            var title = $(cell).text();
+                                cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                                $(
+                                    'input',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                )
+                                .off('keyup change')
+                                .on('keyup change', function (e) {
+                                    let action = exeCall;
                                 
-                                e.stopPropagation();
-                                // Get the search value
-                                $(this).attr('title', $(this).val());
-                                var regexr = '({search})'; //$(this).parents('th').find('select').val();
-            
-                                var cursorPosition = this.selectionStart;
-                                // Search the column for that value
-                                api
-                                    .column(colIdx)
-                                    .search(
-                                        this.value != ''? 
-                                            regexr.replace('{search}', 
-                                                '(((' + this.value + ')))'): '',
-                                                this.value != '',
-                                                this.value == ''
-                                            )
-                                    .draw();
-            
-                                $(this)
-                                    .focus()[0]
-                                    .setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                        break;
+                                    
+                                    if(action == null || action == false) {
+                                        exeCall = true;
+                                        setTimeout(function () {
+                                            exeCall = false;
+                                        }, :delay);
+                                    } else {
+                                        if(action == true) {
+                                            return;
+                                        }
+                                    }
+                                    
+                                    e.stopPropagation();
+                                    // Get the search value
+                                    $(this).attr('title', $(this).val());
+                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+                
+                                    var cursorPosition = this.selectionStart;
+                                    // Search the column for that value
+                                    api
+                                        .column(colIdx)
+                                        .search(
+                                            this.value != ''? 
+                                                regexr.replace('{search}', 
+                                                    '(((' + this.value + ')))'): '',
+                                                    this.value != '',
+                                                    this.value == ''
+                                                )
+                                        .draw();
+                
+                                    $(this)
+                                        .focus()[0]
+                                        .setSelectionRange(cursorPosition, cursorPosition);
+                                });
+                            break;
+                    }
                 }
             }
         });
@@ -412,6 +415,7 @@ class DatatableHelper extends Helper
         $this->rowActions = [
             'name' => 'actions',
             'orderable' => 'false',
+            'searchable' => 'false',
             'width' => '60px',
             //@todo: provide template customization for row actions default labels
             'links' => [
@@ -545,7 +549,7 @@ class DatatableHelper extends Helper
                         }
                         $data = '[' . implode(',', $dataPars) . ']';
                     } else {
-                        $data = '""';
+                        $data = '[]';
                     }
                     $parts[] = "'{$parKey}': {$data}";
                 } else {
