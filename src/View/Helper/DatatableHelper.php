@@ -154,14 +154,11 @@ class DatatableHelper extends Helper
                                
                                 
                                 if(action == null || action == false) {
-                                    console.log(action);
                                     exeCall = true;
-                                    console.log(exeCall);
                                     setTimeout(function () {
                                         exeCall = false;
                                     }, :delay);
                                 } else {
-                                    console.log(exeCall);
                                     if(action == true) {
                                         return;
                                     }
