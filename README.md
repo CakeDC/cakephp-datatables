@@ -213,14 +213,14 @@ Will produce the following script.
 ```
 
 ### types of inputs to search in colunms:
-Now hava 4 types of inputs:
+Now have 4 types of inputs:
     input
     select
     select multiple
     date
 
 to define the type of search need in definition of columns especificate this array:
-```
+```php
 'searchInput' => [
             'type' => '',
             'options' => [
@@ -229,9 +229,70 @@ to define the type of search need in definition of columns especificate this arr
         ],
 ```
 
-<div style="width:70%">
-    <img src="example-search.png" alt="example of search select" />
-</div>
+# for input type text:
+not need make anything is for default:
+
+# for type select:
+```php
+'searchInput' => [
+    type => 'select',
+    'options' => [
+        ['id' => 1, 'name' => 'one'],
+        ['id' => 2, 'name' => 'two'],
+        ....
+    ]
+],
+```
+
+# for type multiple:
+```php
+'searchInput' => [
+    type => 'multiple',
+    'options' => [
+        ['id' => 1, 'name' => 'one'],
+        ['id' => 2, 'name' => 'two'],
+        ....
+    ]
+],
+```
+# for type date:
+need jquery-ui or jquery-datepicker
+```php
+'searchInput' => [
+    type => 'multiple',
+    'options' => [],
+]
+``` 
+
+is need to integrate for columns definition:
+
+ejample:
+```php
+
+<?= $this->Datatable->setFields([
+    [
+        'name' => 'user_id',
+        'searchInput' => [
+            'type' => 'select',
+            'options' => [
+                ['id' => 1, 'name' => 'one'],
+                ['id' => 2, 'name' => 'two'],
+                ....
+            ]
+        ],
+        'render' => '
+            function(data, type) {
+                return Math.floor(Math.random() * 1000);
+            }
+        '
+    ]
+]); ?>
+```
+in options is posible utilize find('list) and put names id and name.
+if not want to search column is necesary to especify this,
+
+```php 'searchable' => false, ```
+
 
 # Getting the datatable script.
 All you need is to tell the help to create the script for you, pass the tag id to be used for
