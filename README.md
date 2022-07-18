@@ -212,7 +212,7 @@ Will produce the following script.
     });
 ```
 
-### types of inputs to search in colunms:
+# Types of inputs to search in colunms:
 Now have 4 types of inputs:
     input
     select
@@ -222,17 +222,17 @@ Now have 4 types of inputs:
 to define the type of search need in definition of columns especificate this array:
 ```php
 'searchInput' => [
-            'type' => '',
+            'type' => '{{any-type}}',
             'options' => [
                     ['id' => 1, 'name' => 'one'],
             ],
         ],
 ```
 
-# for input type text:
+### for input type text:
 not need make anything is for default:
 
-# for type select:
+### for type select:
 ```php
 'searchInput' => [
     type => 'select',
@@ -244,7 +244,7 @@ not need make anything is for default:
 ],
 ```
 
-# for type multiple:
+### for type multiple:
 ```php
 'searchInput' => [
     type => 'multiple',
@@ -255,16 +255,16 @@ not need make anything is for default:
     ]
 ],
 ```
-# for type date:
+### for type date:
 need jquery-ui or jquery-datepicker
 ```php
 'searchInput' => [
-    type => 'multiple',
+    type => 'date',
     'options' => [],
 ]
 ``` 
 
-is need to integrate for columns definition:
+it is to integrate for columns definition:
 
 ejample:
 ```php
@@ -293,6 +293,10 @@ if not want to search column is necesary to especify this,
 
 ```php 'searchable' => false, ```
 
+# getting the datatable input delay 2 second:
+```php
+<?php $this->dataTable->setConfigKey('delay', 2000, true); ?>
+```
 
 # Getting the datatable script.
 All you need is to tell the help to create the script for you, pass the tag id to be used for
