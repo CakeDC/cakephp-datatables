@@ -675,10 +675,10 @@ class DatatableHelper extends Helper
 				}
 				$output = new $link['formatter']($this,$link);
 
-				if (method_exists($output, 'link')){
+				if (!method_exists($output, 'link')){
 					throw new \OutOfBoundsException("Method link is not found in class");
 				}
-				
+
 				break;
         case Datatables::LINK_TYPE_GET:
         default:
