@@ -9,6 +9,7 @@ class Datatables
     public const LINK_TYPE_POST = 'POST';
     public const LINK_TYPE_PUT = 'PUT';
     public const LINK_TYPE_DELETE = 'DELETE';
+	public const LINK_TYPE_CUSTOM = 'CUSTOM';
 
     public static function postLinkMethods()
     {
