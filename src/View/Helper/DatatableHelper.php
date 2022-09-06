@@ -670,7 +670,7 @@ class DatatableHelper extends Helper
             $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
             break;
 			case Datatables::LINK_TYPE_CUSTOM:
-				if (!is_callable($link['formatter'] ?? null)) {
+				if (!class_exists($link['formatter'] ?? null)) {
 					throw new \OutOfBoundsException("Please specify a custom formatter");
 				}
 				$output = new $link['formatter']($this,$link);
