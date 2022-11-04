@@ -1,10 +1,12 @@
 <?php
+
 /**
  * DatatableHelper class helper to generate datatable.
  *
  * @todo check width not working
  * PHP version 7.4
  */
+
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
@@ -121,7 +123,8 @@ class DatatableHelper extends Helper
                             break;
                         
                         case 'date':
-                                cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
+                                title = cell.data('header') ?? ''
+                                cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
                                 $('#from'+colIdx)
                                 .datepicker()
                                 .on('change', function () {
@@ -143,8 +146,7 @@ class DatatableHelper extends Helper
                             break;
                         case 'input':
                         case 'default':
-                            case 'input':
-                            var title = $(cell).text();
+                                title = cell.data('header') ?? ''
                                 cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                                 $(
                                     'input',
@@ -203,12 +205,17 @@ class DatatableHelper extends Helper
         });
     GENERIC_SEARCH_CONFIGURATION;
 
-    // @todo change to Text::insert format
     protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
-        $('#:tagId thead tr')
+        const filters = $('#:tagId thead tr')
             .clone(true)
             .addClass('filters')
-            .appendTo('#:tagId thead');
+        filters.find('th').each((index, item) => {
+            let iCell = $(item)
+            iCell.data('header', iCell.text())
+            iCell.text('')
+        })
+
+        filters.appendTo('#:tagId thead');        
     COLUMN_SEARCH_HEADER_CONFIGURATION;
 
     /**
@@ -664,26 +671,26 @@ class DatatableHelper extends Helper
     protected function processActionLink(array $link): string
     {
         switch ($link['type'] ?? null) {
-        case Datatables::LINK_TYPE_DELETE:
-        case Datatables::LINK_TYPE_PUT:
-        case Datatables::LINK_TYPE_POST:
-            $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
-            break;
-			case Datatables::LINK_TYPE_CUSTOM:
-				if (!class_exists($link['formatter'] ?? null)) {
-					throw new \OutOfBoundsException("Please specify a custom formatter");
-				}
-				$output = new $link['formatter']($this,$link);
+            case Datatables::LINK_TYPE_DELETE:
+            case Datatables::LINK_TYPE_PUT:
+            case Datatables::LINK_TYPE_POST:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this, $link);
+                break;
+            case Datatables::LINK_TYPE_CUSTOM:
+                if (!class_exists($link['formatter'] ?? null)) {
+                    throw new \OutOfBoundsException("Please specify a custom formatter");
+                }
+                $output = new $link['formatter']($this, $link);
 
-				if (!method_exists($output, 'link')){
-					throw new \OutOfBoundsException("Method link is not found in class");
-				}
+                if (!method_exists($output, 'link')) {
+                    throw new \OutOfBoundsException("Method link is not found in class");
+                }
 
-				break;
-        case Datatables::LINK_TYPE_GET:
-        default:
-            $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
-            break;
+                break;
+            case Datatables::LINK_TYPE_GET:
+            default:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this, $link);
+                break;
         }
 
         return $output->link();
@@ -748,7 +755,7 @@ class DatatableHelper extends Helper
                 if (isset($key['searchInput'])) {
                     $searchTypes[] = [
                         'type' => $key['searchInput']['type'],
-                        'data' => (isset($key['searchInput']['options'])?$key['searchInput']['options']:[]),
+                        'data' => (isset($key['searchInput']['options']) ? $key['searchInput']['options'] : []),
                     ];
                 } else {
                     $searchTypes[] = ['type' => 'input', 'data' => []];
