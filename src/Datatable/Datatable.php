@@ -52,6 +52,7 @@ class Datatable
             'word-wrap' => 'break-word',
         ],
         'delay' => 3000,
+        'definitionColumns' => [],
 
         'tableId' => null,
         'headers' => [],
@@ -89,6 +90,228 @@ class Datatable
 
     protected $Helper;
 
+    /**
+     * @var string[]
+     */
+    protected $searchHeadersTypes = [];
+
+    // @todo change to Text::insert format
+    protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
+        var api = this.api();
+
+        let columnsSearch = :searchTypes;
+
+        // For each column
+        api
+        .columns()
+        .eq(0)
+        .each(function (colIdx) {
+            var cell = $('.filters th').eq(
+                $(api.column(colIdx).header()).index()
+            );
+            if (columnsSearch[colIdx] !== undefined) {
+
+                if (columnsSearch[colIdx].type !== undefined) {
+                    switch (columnsSearch[colIdx].type) {
+                        case 'multiple':
+                            cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
+                            columnsSearch[colIdx].data.forEach(function (data) {
+                                $(
+                                    'select',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                ).append(
+                                    '<option value="' + data.id + '">' + data.name + '</option>'
+                                );
+                            });
+                            $(
+                                'select',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            )
+                            .on('change', function () {
+                                let select_value = $(
+                                    'select option:selected',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                ).toArray().map(item => item.value).join();
+                                api.column(colIdx).search(select_value).draw();
+                            });
+                            break;
+
+                        case 'select' : 
+                                cell.html('<select style="width:100%"><option value=""></option></select>');
+                                columnsSearch[colIdx].data.forEach(function (data) {
+                                    $(
+                                        'select',
+                                        $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    ).append(
+                                        '<option value="' + data.id + '">' + data.name + '</option>'
+                                    );
+                                });
+                                $(
+                                    'select',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                )
+                                .on('change', function () {
+                                    api.column(colIdx).search(this.value).draw();
+                                });
+                            break;
+                        
+                        case 'date':
+                                cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
+                                $('#from'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#to'+colIdx).val() !== '') {
+                                        api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                    } else {
+                                        api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                    }
+                                });
+                                $('#to'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#from'+colIdx).val() !== '') {
+                                        api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                    } else {
+                                        api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                    }
+                                });
+                            break;
+                        case 'input':
+                        case 'default':
+                            case 'input':
+                            var title = $(cell).text();
+                                cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                                $(
+                                    'input',
+                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                )
+                                .off('keyup change')
+                                .on('keyup change', function (e) {
+                                    let action = exeCall;
+                                
+                                    
+                                    if(action == null || action == false) {
+                                        exeCall = true;
+                                        setTimeout(function () {
+                                            exeCall = false;
+                                        }, :delay);
+                                    } else {
+                                        if(action == true) {
+                                            return;
+                                        }
+                                    }
+                                    
+                                    e.stopPropagation();
+                                    // Get the search value
+                                    $(this).attr('title', $(this).val());
+                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+                
+                                    var cursorPosition = this.selectionStart;
+                                    // Search the column for that value
+                                    api
+                                        .column(colIdx)
+                                        .search(
+                                            this.value != ''? 
+                                                regexr.replace('{search}', 
+                                                    '(((' + this.value + ')))'): '',
+                                                    this.value != '',
+                                                    this.value == ''
+                                                )
+                                        .draw();
+                
+                                    $(this)
+                                        .focus()[0]
+                                        .setSelectionRange(cursorPosition, cursorPosition);
+                                });
+                            break;
+                    }
+                }
+            }
+        });
+    COLUMN_SEARCH_CONFIGURATION;
+
+    protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
+        $('#:searchInput').on( 'keyup click', function () {
+            $('#:tagId').DataTable().search(
+                $('#:searchInput').val()       
+            ).draw();
+        });
+    GENERIC_SEARCH_CONFIGURATION;
+
+    // @todo change to Text::insert format
+    protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
+        $('#:tagId thead tr')
+            .clone(true)
+            .addClass('filters')
+            .appendTo('#:tagId thead');
+    COLUMN_SEARCH_HEADER_CONFIGURATION;
+
+    /**
+     * Json template with placeholders for configuration options.
+     *
+     * @var string
+     */
+    protected $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
+        // Datatables configuration
+        $(() => {
+
+            // API callback
+            :getDataMethod
+    
+            // Generic search
+            let exeCall = null;
+            :searchTemplate
+
+            :columnSearchTemplate
+            
+            const dt = $('#:tagId');
+          
+
+            dt.DataTable({
+                orderCellsTop: true,
+                fixedHeader: true,
+                autoWidth: :autoWidth,
+                ajax: getData(),
+                //searching: false,
+                pageLength: :pageLength,
+                processing: :processing,
+                serverSide: :serverSide,
+                //@todo: add option to select the paging type
+                //pagingType: "simple",
+                columns: [
+                    :configColumns
+                ],
+                columnDefs: [
+                    :definitionColumns
+                ],
+                language: :language,
+                lengthMenu: :lengthMenu,
+                //@todo add function callback in callback Datatable function
+                drawCallback: :drawCallback,
+                //@todo use configuration instead  
+                initComplete: function () { 
+                    //onComplete
+                    :onCompleteCallback
+                    //column search
+                    :columnSearch
+                },
+            });
+
+            dt.css(:tableCss);
+            if( jQuery.isFunction( 'select2' ) ) {
+                $(function(){
+                    $(function(){
+                        // for execute the select2 plugin after all events are loaded
+                        $('.form-select-multiple').select2();
+                    });
+                });
+            }
+        });
+    DATATABLE_CONFIGURATION;
+    
+    /**
+     * @param Helper $Helper
+     */
     public function __construct($Helper)
     {
         $this->Helper = $Helper;
@@ -171,16 +394,10 @@ class Datatable
         $this->searchHeadersTypes = $this->processColumnTypeSearch();
         $this->validateConfigurationOptions();
 
-        debug([
-            'searchTypes' => ($this->searchHeadersTypes ?: ''),
-            'delay' => $this->getConfig('delay') ?? '3000',
-        ]);
-        exit();
-
         $this->columnSearchTemplate = Text::insert(
             $this->columnSearchTemplate,
             [
-                'searchTypes' => ($this->searchHeadersTypes ?: ''),
+                'searchTypes' => ($this->searchHeadersTypes ?? ''),
                 'delay' => $this->getConfig('delay') ?? '3000',
             ]
         );
@@ -220,7 +437,7 @@ class Datatable
                 'processing' => $this->getConfig('processing') ? 'true' : 'false',
                 'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
                 'configColumns' => $this->configColumns,
-                'definitionColumns' => $this->definitionColumns,
+                'definitionColumns' => $this->getConfig('definitionColumns'),
                 'language' => json_encode($this->getConfig('language')),
                 'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
                 'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
@@ -323,7 +540,7 @@ class Datatable
             return $output;
         };
         $configColumns = array_map($processor, (array)$this->getConfig('fields'));
-        $configRowActions = $processor((array)$this->rowActions);
+        $configRowActions = $processor((array)$this->getConfig('rowActions'));
         $this->configColumns = implode(", \n", $configColumns);
         $this->configColumns .= ", \n" . $configRowActions;
     }
@@ -384,20 +601,21 @@ class Datatable
     protected function processColumnDefinitionsCallbacks()
     {
         $rows = [];
-        foreach ($this->definitionColumns as $definition) {
+        foreach ($this->getConfig('definitionColumns') as $definition) {
             $parts = [];
             foreach ($definition as $key => $val) {
                 $parts[] = "'{$key}': {$val}";
             }
             $rows[] = '{' . implode(',', $parts) . '}';
         }
-        $this->definitionColumns = implode(',', $rows);
+
+        $this->setConfig('definitionColumns', implode(',', $rows));
     }
 
     /**
      * Loop types into javascript format.
      */
-    protected function processColumnTypeSearch()
+    protected function processColumnTypeSearch(): string
     {
         if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
             $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
@@ -474,5 +692,16 @@ class Datatable
         if (empty($this->configColumns)) {
             throw new MissConfiguredException(__('Column renders are not specified for your datatable.'));
         }
+    }
+
+    /**
+     * Set columns definitions as orderable and sortable
+     *
+     * @param  \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
+     * @return void
+     */
+    public function setDefinitions(iterable $dataDefinitions)
+    {
+        $this->setConfig('definitionColumns', $dataDefinitions);
     }
 }
