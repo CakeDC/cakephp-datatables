@@ -1,10 +1,12 @@
 <?php
+
 /**
  * DatatableHelper class helper to generate datatable.
  *
  * @todo check width not working
  * PHP version 7.4
  */
+
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Helper;
@@ -60,11 +62,18 @@ class DatatableHelper extends Helper
     // @todo maybe array of instances
     private Datatable $dtInstance;
 
+    /**
+     * @param array $config
+     * @return void
+     */
     public function initialize(array $config): void
     {
         $this->reset();
     }
 
+    /**
+     * @return Datatable
+     */
     public function reset(): Datatable
     {
         $this->dtInstance = new Datatable($this);
@@ -72,6 +81,9 @@ class DatatableHelper extends Helper
         return $this->dtInstance;
     }
 
+    /**
+     * @return Datatable
+     */
     public function getInstance(): Datatable
     {
         if (empty($this->dtInstance)) {
@@ -82,16 +94,28 @@ class DatatableHelper extends Helper
     }
 
 
+    /**
+     * @param array $fields
+     * @return void
+     */
     public function setFields(array $fields)
     {
         $this->dtInstance->setFields($fields);
     }
 
+    /**
+     * @param array $rowActions
+     * @return void
+     */
     public function setRowActions(array $rowActions)
     {
         $this->dtInstance->setRowActions($rowActions);
     }
 
+    /**
+     * @param string $tagId
+     * @return string
+     */
     public function getDatatableScript(string $tagId): string
     {
         $this->dtInstance->setTableId($tagId);
