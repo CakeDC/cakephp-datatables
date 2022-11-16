@@ -137,92 +137,92 @@ class Datatable
                             break;
 
                         case 'select' : 
-                                cell.html('<select style="width:100%"><option value=""></option></select>');
-                                columnsSearch[colIdx].data.forEach(function (data) {
-                                    $(
-                                        'select',
-                                        $('.filters th').eq($(api.column(colIdx).header()).index())
-                                    ).append(
-                                        '<option value="' + data.id + '">' + data.name + '</option>'
-                                    );
-                                });
+                            cell.html('<select style="width:100%"><option value=""></option></select>');
+                            columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
                                     $('.filters th').eq($(api.column(colIdx).header()).index())
-                                )
-                                .on('change', function () {
-                                    api.column(colIdx).search(this.value).draw();
-                                });
+                                ).append(
+                                    '<option value="' + data.id + '">' + data.name + '</option>'
+                                );
+                            });
+                            $(
+                                'select',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            )
+                            .on('change', function () {
+                                api.column(colIdx).search(this.value).draw();
+                            });
                             break;
                         
                         case 'date':
-                                cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ cell.text() +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ cell.text() +'" />')
-                                $('#from'+colIdx)
-                                .datepicker()
-                                .on('change', function () {
-                                    if($('#to'+colIdx).val() !== '') {
-                                        api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
-                                    } else {
-                                        api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
-                                    }
-                                });
-                                $('#to'+colIdx)
-                                .datepicker()
-                                .on('change', function () {
-                                    if($('#from'+colIdx).val() !== '') {
-                                        api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
-                                    } else {
-                                        api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
-                                    }
-                                });
+                            title = cell.data('header') ?? '';
+                            cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                            $('#from'+colIdx)
+                            .datepicker()
+                            .on('change', function () {
+                                if($('#to'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                }
+                            });
+                            $('#to'+colIdx)
+                            .datepicker()
+                            .on('change', function () {
+                                if($('#from'+colIdx).val() !== '') {
+                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                } else {
+                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                }
+                            });
                             break;
                         case 'input':
-                        case 'default':
-                            case 'input':
-                            var title = $(cell).text();
-                                cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
-                                $(
-                                    'input',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
-                                )
-                                .off('keyup change')
-                                .on('keyup change', function (e) {
-                                    let action = exeCall;
+                        case default:
+                            title = cell.data('header') ?? '';
+                            cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                            $(
+                                'input',
+                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                            )
+                            .off('keyup change')
+                            .on('keyup change', function (e) {
+                                let action = exeCall;
+                            
                                 
-                                    
-                                    if(action == null || action == false) {
-                                        exeCall = true;
-                                        setTimeout(function () {
-                                            exeCall = false;
-                                        }, :delay);
-                                    } else {
-                                        if(action == true) {
-                                            return;
-                                        }
+                                if(action == null || action == false) {
+                                    exeCall = true;
+                                    setTimeout(function () {
+                                        exeCall = false;
+                                    }, :delay);
+                                } else {
+                                    if(action == true) {
+                                        return;
                                     }
-                                    
-                                    e.stopPropagation();
-                                    // Get the search value
-                                    $(this).attr('title', $(this).val());
-                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
-                
-                                    var cursorPosition = this.selectionStart;
-                                    // Search the column for that value
-                                    api
-                                        .column(colIdx)
-                                        .search(
-                                            this.value != ''? 
-                                                regexr.replace('{search}', 
-                                                    '(((' + this.value + ')))'): '',
-                                                    this.value != '',
-                                                    this.value == ''
-                                                )
-                                        .draw();
-                
-                                    $(this)
-                                        .focus()[0]
-                                        .setSelectionRange(cursorPosition, cursorPosition);
-                                });
+                                }
+                                
+                                e.stopPropagation();
+                                // Get the search value
+                                $(this).attr('title', $(this).val());
+                                var regexr = '({search})'; //$(this).parents('th').find('select').val();
+            
+                                var cursorPosition = this.selectionStart;
+                                // Search the column for that value
+                                api
+                                    .column(colIdx)
+                                    .search(
+                                        this.value != ''? 
+                                            regexr.replace('{search}', 
+                                                '(((' + this.value + ')))'): '',
+                                                this.value != '',
+                                                this.value == ''
+                                            )
+                                    .draw();
+            
+                                $(this)
+                                    .focus()[0]
+                                    .setSelectionRange(cursorPosition, cursorPosition);
+                            });
                             break;
                     }
                 }
@@ -240,10 +240,15 @@ class Datatable
 
     // @todo change to Text::insert format
     protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
-        $('#:tagId thead tr')
+        const filters = $('#:tagId thead tr')
             .clone(true)
-            .addClass('filters')
-            .appendTo('#:tagId thead');
+            .addClass('filters');
+        filters.find('th').each((index, item) => {
+            let iCell = $(item)
+            iCell.data('header', iCell.text())
+            iCell.text('')
+        })
+        filters.appendTo('#:tagId thead');
     COLUMN_SEARCH_HEADER_CONFIGURATION;
 
     /**
@@ -308,7 +313,7 @@ class Datatable
             }
         });
     DATATABLE_CONFIGURATION;
-    
+
     /**
      * @param Helper $Helper
      */
@@ -377,7 +382,7 @@ class Datatable
         }
 
         return $this->Helper->Html->tableHeaders($tableHeaders, $headersConfig['headersAttrsTr'], $headersConfig['headersAttrsTh']);
-    }    
+    }
 
 
     public function getDatatableScript(): string
@@ -570,26 +575,26 @@ class Datatable
     protected function processActionLink(array $link): string
     {
         switch ($link['type'] ?? null) {
-        case Datatables::LINK_TYPE_DELETE:
-        case Datatables::LINK_TYPE_PUT:
-        case Datatables::LINK_TYPE_POST:
-            $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this->Helper, $link);
-            break;
-			case Datatables::LINK_TYPE_CUSTOM:
-				if (!class_exists($link['formatter'] ?? null)) {
-					throw new \OutOfBoundsException("Please specify a custom formatter");
-				}
-				$output = new $link['formatter']($this->Helper, $link);
+            case Datatables::LINK_TYPE_DELETE:
+            case Datatables::LINK_TYPE_PUT:
+            case Datatables::LINK_TYPE_POST:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this->Helper, $link);
+                break;
+            case Datatables::LINK_TYPE_CUSTOM:
+                if (!class_exists($link['formatter'] ?? null)) {
+                    throw new \OutOfBoundsException("Please specify a custom formatter");
+                }
+                $output = new $link['formatter']($this->Helper, $link);
 
-				if (!method_exists($output, 'link')){
-					throw new \OutOfBoundsException("Method link is not found in class");
-				}
+                if (!method_exists($output, 'link')) {
+                    throw new \OutOfBoundsException("Method link is not found in class");
+                }
 
-				break;
-        case Datatables::LINK_TYPE_GET:
-        default:
-            $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this->Helper, $link);
-            break;
+                break;
+            case Datatables::LINK_TYPE_GET:
+            default:
+                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this->Helper, $link);
+                break;
         }
 
         return $output->link();
@@ -667,7 +672,7 @@ class Datatable
                 if (isset($key['searchInput'])) {
                     $searchTypes[] = [
                         'type' => $key['searchInput']['type'],
-                        'data' => (isset($key['searchInput']['options'])?$key['searchInput']['options']:[]),
+                        'data' => (isset($key['searchInput']['options']) ? $key['searchInput']['options'] : []),
                     ];
                 } else {
                     $searchTypes[] = ['type' => 'input', 'data' => []];
