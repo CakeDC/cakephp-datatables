@@ -295,7 +295,7 @@ if not want to search column is necesary to especify this,
 
 # getting the datatable input delay 2 second:
 ```php
-<?php $this->dataTable->setConfigKey('delay', 2000, true); ?>
+<?php $this->Datatable->setConfigKey('delay', 2000, true); ?>
 ```
 
 # Getting the datatable script.
@@ -309,4 +309,10 @@ the datatable.
 Optionally you can format and translate the table header as follows:
 ```php
 <?= $this->Datatable->getTableHeaders($article->getVisible(), true) ?>
+```
+
+# Create multiple datatables in the same template
+Resets the datatable instance, and then you can set up a new one
+```php
+<?= $this->Datatable->reset() ?>
 ```
