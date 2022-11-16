@@ -18,6 +18,8 @@ use Datatables\Exception\MissConfiguredException;
 use InvalidArgumentException;
 
 /**
+ * @deprecated
+ * 
  * Datatable helper
  *
  * @property \CakeDC\Datatables\View\Helper\HtmlHelper $Html
