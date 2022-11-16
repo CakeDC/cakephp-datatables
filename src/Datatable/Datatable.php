@@ -95,7 +95,7 @@ class Datatable
      */
     protected $searchHeadersTypes = [];
 
-    // @todo change to Text::insert format
+    // @todo chagen var to const/let
     protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
