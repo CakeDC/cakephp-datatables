@@ -178,7 +178,7 @@ class Datatable
                             });
                             break;
                         case 'input':
-                        case default:
+                        default:
                             title = cell.data('header') ?? '';
                             cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                             $(
