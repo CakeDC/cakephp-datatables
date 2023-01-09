@@ -539,6 +539,9 @@ class Datatable
                 if ($key['width'] ?? null) {
                     $output .= "\nwidth: '{$key['width']}',";
                 }
+				if ($key['className'] ?? null) {
+					$output .= "\nclassName: '{$key['className']}',";
+				}
             }
             $output .= '}';
 
