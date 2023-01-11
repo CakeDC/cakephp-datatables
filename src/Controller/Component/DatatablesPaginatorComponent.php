@@ -66,7 +66,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     protected function applyLimits(ServerRequest $request, array $settings): array
     {
         $dtStart = (int)$request->getQuery('start');
-        $dtLength = (int)$request->getQuery('length');
+        $dtLength = $request->getQuery('length') ? (int)$request->getQuery('length') : null;
 
         $settings['limit'] = $dtLength;
         if ($dtStart === 0) {
