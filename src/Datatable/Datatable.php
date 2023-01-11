@@ -258,7 +258,7 @@ class Datatable
      */
     protected $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // Datatables configuration
-        $(() => {
+        $(async () => {
 
             // API callback
             :getDataMethod
@@ -270,13 +270,12 @@ class Datatable
             :columnSearchTemplate
             
             const dt = $('#:tagId');
-          
-
+            
             dt.DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
                 autoWidth: :autoWidth,
-                ajax: getData(),
+                ajax: await getData(),
                 //searching: false,
                 pageLength: :pageLength,
                 processing: :processing,

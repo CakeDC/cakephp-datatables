@@ -119,7 +119,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     {
         // translate ordering
         $request = $this->getController()->getRequest();
-        $dtColumns = $request->getQuery('columns');
+        $dtColumns = $request->getQuery('columns', []);
         $newQueryParams = [];
         foreach ($dtColumns as $dtColumn) {
             if (($dtColumn['searchable'] ?? null) !== 'true') {
