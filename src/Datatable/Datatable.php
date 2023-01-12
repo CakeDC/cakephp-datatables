@@ -54,7 +54,7 @@ class Datatable
         'delay' => 3000,
         'definitionColumns' => [],
 
-        'tableId' => null,
+        'tableId' => '',
         'headers' => [],
         'fields' => [],
         'headersConfig' => [
@@ -118,19 +118,19 @@ class Datatable
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).append(
                                     '<option value="' + data.id + '">' + data.name + '</option>'
                                 );
                             });
                             $(
                                 'select',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .on('change', function () {
                                 let select_value = $(
                                     'select option:selected',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).toArray().map(item => item.value).join();
                                 api.column(colIdx).search(select_value).draw();
                             });
@@ -141,14 +141,14 @@ class Datatable
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).append(
                                     '<option value="' + data.id + '">' + data.name + '</option>'
                                 );
                             });
                             $(
                                 'select',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .on('change', function () {
                                 api.column(colIdx).search(this.value).draw();
@@ -183,7 +183,7 @@ class Datatable
                             cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                             $(
                                 'input',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .off('keyup change')
                             .on('keyup change', function (e) {
