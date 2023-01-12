@@ -106,7 +106,7 @@ class Datatable
         .columns()
         .eq(0)
         .each(function (colIdx) {
-            var cell = $('.filters th').eq(
+            var cell = $('#:tagId .filters th').eq(
                 $(api.column(colIdx).header()).index()
             );
             if (columnsSearch[colIdx] !== undefined) {
@@ -136,7 +136,7 @@ class Datatable
                             });
                             break;
 
-                        case 'select' : 
+                        case 'select' :
                             cell.html('<select style="width:100%"><option value=""></option></select>');
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
@@ -154,7 +154,7 @@ class Datatable
                                 api.column(colIdx).search(this.value).draw();
                             });
                             break;
-                        
+
                         case 'date':
                             title = cell.data('header') ?? '';
                             cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
@@ -188,8 +188,8 @@ class Datatable
                             .off('keyup change')
                             .on('keyup change', function (e) {
                                 let action = exeCall;
-                            
-                                
+
+
                                 if(action == null || action == false) {
                                     exeCall = true;
                                     setTimeout(function () {
@@ -200,25 +200,25 @@ class Datatable
                                         return;
                                     }
                                 }
-                                
+
                                 e.stopPropagation();
                                 // Get the search value
                                 $(this).attr('title', $(this).val());
                                 var regexr = '({search})'; //$(this).parents('th').find('select').val();
-            
+
                                 var cursorPosition = this.selectionStart;
                                 // Search the column for that value
                                 api
                                     .column(colIdx)
                                     .search(
-                                        this.value != ''? 
-                                            regexr.replace('{search}', 
+                                        this.value != ''?
+                                            regexr.replace('{search}',
                                                 '(((' + this.value + ')))'): '',
                                                 this.value != '',
                                                 this.value == ''
                                             )
                                     .draw();
-            
+
                                 $(this)
                                     .focus()[0]
                                     .setSelectionRange(cursorPosition, cursorPosition);
@@ -233,7 +233,7 @@ class Datatable
     protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#:searchInput').on( 'keyup click', function () {
             $('#:tagId').DataTable().search(
-                $('#:searchInput').val()       
+                $('#:searchInput').val()
             ).draw();
         });
     GENERIC_SEARCH_CONFIGURATION;
@@ -262,15 +262,15 @@ class Datatable
 
             // API callback
             :getDataMethod
-    
+
             // Generic search
             let exeCall = null;
             :searchTemplate
 
             :columnSearchTemplate
-            
+
             const dt = $('#:tagId');
-            
+
             dt.DataTable({
                 orderCellsTop: true,
                 fixedHeader: true,
@@ -292,8 +292,8 @@ class Datatable
                 lengthMenu: :lengthMenu,
                 //@todo add function callback in callback Datatable function
                 drawCallback: :drawCallback,
-                //@todo use configuration instead  
-                initComplete: function () { 
+                //@todo use configuration instead
+                initComplete: function () {
                     //onComplete
                     :onCompleteCallback
                     //column search
@@ -403,6 +403,7 @@ class Datatable
             [
                 'searchTypes' => ($this->searchHeadersTypes ?? ''),
                 'delay' => $this->getConfig('delay') ?? '3000',
+                'tagId' => $tagId,
             ]
         );
 
