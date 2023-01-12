@@ -316,3 +316,8 @@ Resets the datatable instance, and then you can set up a new one
 ```php
 <?= $this->Datatable->reset() ?>
 ```
+# Indicate a specific url to obtain the data
+For example if you are in /pages/index but you et date from /pages/list, is usefull when you hace multiple tables in the same page
+```php
+<?= $this->Datatable->getInstance()->setConfig('ajaxUrl', ['controller' => 'Pages', 'action' => 'list']); ?>
+```
