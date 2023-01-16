@@ -54,7 +54,7 @@ class Datatable
         ],
         'delay' => 3000,
         'definitionColumns' => [],
-
+        'fixedHeader' => true,
         'tableId' => '',
         'headers' => [],
         'fields' => [],
@@ -274,7 +274,7 @@ class Datatable
 
             dt.DataTable({
                 orderCellsTop: true,
-                fixedHeader: true,
+                fixedHeader: :fixedHeader,
                 autoWidth: :autoWidth,
                 ajax: await getData(),
                 //searching: false,
@@ -438,6 +438,7 @@ class Datatable
                 'searchTemplate' => $searchTemplate,
                 'columnSearchTemplate' => $columnSearchTemplate,
                 'tagId' => $tagId,
+                'fixedHeader' => $this->getConfig('fixedHeader') ? 'true' : 'false',
                 'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
                 'pageLength' => $this->getConfig('pageLentgh') ?? '10',
                 'processing' => $this->getConfig('processing') ? 'true' : 'false',
