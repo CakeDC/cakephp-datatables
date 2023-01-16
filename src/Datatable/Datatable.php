@@ -158,23 +158,23 @@ class Datatable
 
                         case 'date':
                             title = cell.data('header') ?? '';
-                            cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
-                            $('#from'+colIdx)
+                            cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                            $('#:tagId').find('#from'+colIdx)
                             .datepicker()
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
                                 }
                             });
-                            $('#to'+colIdx)
+                            $('#:tagId').find('#to'+colIdx)
                             .datepicker()
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                    api.column(colIdx).search( '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 }
                             });
                             break;
