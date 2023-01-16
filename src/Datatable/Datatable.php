@@ -45,6 +45,7 @@ class Datatable
         //complete callback function
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
+        'ajaxType' => 'POST',
         'autoWidth' => false,
         'tableCss' => [
             'width' => '100%',
@@ -464,6 +465,8 @@ class Datatable
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Helper->Url->build($url);
 
+        $ajaxType = $this->getConfig('ajaxType');
+
         if (!empty($this->getConfig('extraFields'))) {
             $extraFields = $this->processExtraFields();
             //@todo change to async or anonymous js function
@@ -485,7 +488,7 @@ class Datatable
                 let getData = async () => {
                     return {
                         url:'{$url}',
-                        type: 'POST',
+                        type: '{$ajaxType}',
                     }
                 };
             GET_DATA;
