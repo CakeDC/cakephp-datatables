@@ -45,6 +45,7 @@ class Datatable
         //complete callback function
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
+        'ajaxType' => 'POST',
         'autoWidth' => false,
         'tableCss' => [
             'width' => '100%',
@@ -53,8 +54,8 @@ class Datatable
         ],
         'delay' => 3000,
         'definitionColumns' => [],
-
-        'tableId' => null,
+        'fixedHeader' => true,
+        'tableId' => '',
         'headers' => [],
         'fields' => [],
         'headersConfig' => [
@@ -106,7 +107,7 @@ class Datatable
         .columns()
         .eq(0)
         .each(function (colIdx) {
-            var cell = $('.filters th').eq(
+            var cell = $('#:tagId .filters th').eq(
                 $(api.column(colIdx).header()).index()
             );
             if (columnsSearch[colIdx] !== undefined) {
@@ -118,62 +119,62 @@ class Datatable
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).append(
                                     '<option value="' + data.id + '">' + data.name + '</option>'
                                 );
                             });
                             $(
                                 'select',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .on('change', function () {
                                 let select_value = $(
                                     'select option:selected',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).toArray().map(item => item.value).join();
                                 api.column(colIdx).search(select_value).draw();
                             });
                             break;
 
-                        case 'select' : 
+                        case 'select' :
                             cell.html('<select style="width:100%"><option value=""></option></select>');
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
-                                    $('.filters th').eq($(api.column(colIdx).header()).index())
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 ).append(
                                     '<option value="' + data.id + '">' + data.name + '</option>'
                                 );
                             });
                             $(
                                 'select',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .on('change', function () {
                                 api.column(colIdx).search(this.value).draw();
                             });
                             break;
-                        
+
                         case 'date':
                             title = cell.data('header') ?? '';
-                            cell.html('<input type="text" id="from' + colIdx + '" class="datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
-                            $('#from'+colIdx)
+                            cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                            $('#:tagId').find('#from'+colIdx)
                             .datepicker()
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|' + $('#to' + colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search($('#from' + colIdx).val() + '|').draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
                                 }
                             });
-                            $('#to'+colIdx)
+                            $('#:tagId').find('#to'+colIdx)
                             .datepicker()
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '') {
-                                    api.column(colIdx).search($('#from'+colIdx).val() + '|' + $('#to'+colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search( '|' + $('#to'+colIdx).val()).draw();
+                                    api.column(colIdx).search( '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 }
                             });
                             break;
@@ -183,13 +184,13 @@ class Datatable
                             cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
                             $(
                                 'input',
-                                $('.filters th').eq($(api.column(colIdx).header()).index())
+                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                             )
                             .off('keyup change')
                             .on('keyup change', function (e) {
                                 let action = exeCall;
-                            
-                                
+
+
                                 if(action == null || action == false) {
                                     exeCall = true;
                                     setTimeout(function () {
@@ -200,25 +201,25 @@ class Datatable
                                         return;
                                     }
                                 }
-                                
+
                                 e.stopPropagation();
                                 // Get the search value
                                 $(this).attr('title', $(this).val());
                                 var regexr = '({search})'; //$(this).parents('th').find('select').val();
-            
+
                                 var cursorPosition = this.selectionStart;
                                 // Search the column for that value
                                 api
                                     .column(colIdx)
                                     .search(
-                                        this.value != ''? 
-                                            regexr.replace('{search}', 
+                                        this.value != ''?
+                                            regexr.replace('{search}',
                                                 '(((' + this.value + ')))'): '',
                                                 this.value != '',
                                                 this.value == ''
                                             )
                                     .draw();
-            
+
                                 $(this)
                                     .focus()[0]
                                     .setSelectionRange(cursorPosition, cursorPosition);
@@ -233,7 +234,7 @@ class Datatable
     protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#:searchInput').on( 'keyup click', function () {
             $('#:tagId').DataTable().search(
-                $('#:searchInput').val()       
+                $('#:searchInput').val()
             ).draw();
         });
     GENERIC_SEARCH_CONFIGURATION;
@@ -262,18 +263,18 @@ class Datatable
 
             // API callback
             :getDataMethod
-    
+
             // Generic search
             let exeCall = null;
             :searchTemplate
 
             :columnSearchTemplate
-            
+
             const dt = $('#:tagId');
-            
+
             dt.DataTable({
                 orderCellsTop: true,
-                fixedHeader: true,
+                fixedHeader: :fixedHeader,
                 autoWidth: :autoWidth,
                 ajax: await getData(),
                 //searching: false,
@@ -292,8 +293,8 @@ class Datatable
                 lengthMenu: :lengthMenu,
                 //@todo add function callback in callback Datatable function
                 drawCallback: :drawCallback,
-                //@todo use configuration instead  
-                initComplete: function () { 
+                //@todo use configuration instead
+                initComplete: function () {
                     //onComplete
                     :onCompleteCallback
                     //column search
@@ -403,6 +404,7 @@ class Datatable
             [
                 'searchTypes' => ($this->searchHeadersTypes ?? ''),
                 'delay' => $this->getConfig('delay') ?? '3000',
+                'tagId' => $tagId,
             ]
         );
 
@@ -436,6 +438,7 @@ class Datatable
                 'searchTemplate' => $searchTemplate,
                 'columnSearchTemplate' => $columnSearchTemplate,
                 'tagId' => $tagId,
+                'fixedHeader' => $this->getConfig('fixedHeader') ? 'true' : 'false',
                 'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
                 'pageLength' => $this->getConfig('pageLentgh') ?? '10',
                 'processing' => $this->getConfig('processing') ? 'true' : 'false',
@@ -463,6 +466,8 @@ class Datatable
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Helper->Url->build($url);
 
+        $ajaxType = $this->getConfig('ajaxType');
+
         if (!empty($this->getConfig('extraFields'))) {
             $extraFields = $this->processExtraFields();
             //@todo change to async or anonymous js function
@@ -484,7 +489,7 @@ class Datatable
                 let getData = async () => {
                     return {
                         url:'{$url}',
-                        type: 'POST',
+                        type: '{$ajaxType}',
                     }
                 };
             GET_DATA;
