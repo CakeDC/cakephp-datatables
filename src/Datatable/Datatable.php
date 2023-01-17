@@ -46,6 +46,7 @@ class Datatable
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
         'ajaxType' => 'POST',
+        'csrfToken' => null,
         'autoWidth' => false,
         'tableCss' => [
             'width' => '100%',
@@ -467,6 +468,7 @@ class Datatable
         $url = $this->Helper->Url->build($url);
 
         $ajaxType = $this->getConfig('ajaxType');
+        $csrfToken = $this->getConfig('csrfToken');
 
         if (!empty($this->getConfig('extraFields'))) {
             $extraFields = $this->processExtraFields();
@@ -484,10 +486,10 @@ class Datatable
             };
             GET_DATA;
         } else {
-            // @todo setConfig type POST
             $this->getDataTemplate = <<<GET_DATA
                 let getData = async () => {
                     return {
+                        headers: { 'X-CSRF-Token': '{$csrfToken}' },
                         url:'{$url}',
                         type: '{$ajaxType}',
                     }
