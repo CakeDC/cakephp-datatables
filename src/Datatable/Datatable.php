@@ -486,10 +486,15 @@ class Datatable
             };
             GET_DATA;
         } else {
+            if ($csrfToken !== null){
+                $headers = "headers: { 'X-CSRF-Token': '{$csrfToken}' },";
+            } else {
+                $headers = "";
+            }
             $this->getDataTemplate = <<<GET_DATA
                 let getData = async () => {
                     return {
-                        headers: { 'X-CSRF-Token': '{$csrfToken}' },
+                        {$headers}
                         url:'{$url}',
                         type: '{$ajaxType}',
                     }
