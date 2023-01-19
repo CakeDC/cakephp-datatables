@@ -50,6 +50,8 @@ class DatatableHelper extends Helper
         //complete callback function
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
+        'ajaxType' => 'POST',
+        'csrfToken' => null,
         'autoWidth' => false,
         'tableCss' => [
             'width' => '100%',
@@ -119,6 +121,11 @@ class DatatableHelper extends Helper
     public function getDatatableScript(string $tagId): string
     {
         $this->dtInstance->setTableId($tagId);
+
+        if ($this->dtInstance->getConfig('ajaxType') === 'POST') {
+            $csrfToken = $this->_View->getRequest()->getAttribute('csrfToken');
+            $this->dtInstance->setConfig('csrfToken', $csrfToken);
+        }
 
         return $this->dtInstance->getDatatableScript();
     }
