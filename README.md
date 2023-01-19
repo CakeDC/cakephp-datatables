@@ -90,14 +90,14 @@ Add the disable option in the link, with a javascript closure that returns a boo
             [
                 'url' => ['action' => 'view', 'extra' => ("/' + obj.id + '")],
                 'label' => 'hard coded',
-                'disable' => 'function (value) { 
+                'disable' => 'function (value) {
                     return value === "N/A"
                 }',
             ],
             [
                 'url' => ['action' => 'view', 'd'],
                 'label' => 'hard coded'
-                'disable' => 'function (value, obj) { 
+                'disable' => 'function (value, obj) {
                     return obj.status === "inactive"
                 }',
             ],
@@ -262,7 +262,7 @@ need jquery-ui or jquery-datepicker
     type => 'date',
     'options' => [],
 ]
-``` 
+```
 
 it is to integrate for columns definition:
 
@@ -320,4 +320,25 @@ Resets the datatable instance, and then you can set up a new one
 For example if you are in /pages/index but you et date from /pages/list, is usefull when you have multiple tables in the same page
 ```php
 <?= $this->Datatable->getInstance()->setConfig('ajaxUrl', ['controller' => 'Pages', 'action' => 'list']); ?>
+```
+# Indicate specific type for ajax call
+You can specify on config "ajaxType" if would that ajax calls are GET or POST, for example
+```php
+<?= $this->Datatable->getInstance()->setConfig('ajaxType', 'POST'); ?>
+```
+Important: if you set POST you must set "unlockedActions" on Security Component, specify the target action in the controller's initialize function
+```php
+    public function initialize(): void
+    {
+        parent::initialize();
+
+        ...
+
+        if ($this->components()->has('Security')) {
+            $this->Security->setConfig('unlockedActions', ['list']);
+        }
+
+        ...
+
+    }
 ```
