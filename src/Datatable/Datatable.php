@@ -45,7 +45,7 @@ class Datatable
         //complete callback function
         'onCompleteCallback' => null,
         'ajaxUrl' => null,
-        'ajaxType' => 'POST',
+        'ajaxType' => 'GET',
         'csrfToken' => null,
         'autoWidth' => false,
         'tableCss' => [
