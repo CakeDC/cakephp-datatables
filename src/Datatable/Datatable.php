@@ -20,6 +20,16 @@ class Datatable
     use InstanceConfigTrait;
 
     /**
+     * @var string
+     */
+    protected $getDataTemplate;
+
+    /**
+     * @var string
+     */
+    protected $configColumns;
+
+    /**
      * Default config for this helper.
      *
      * @var array<string, mixed>
