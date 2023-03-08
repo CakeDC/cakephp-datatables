@@ -20,6 +20,16 @@ class Datatable
     use InstanceConfigTrait;
 
     /**
+     * @var string
+     */
+    protected $getDataTemplate;
+
+    /**
+     * @var string
+     */
+    protected $configColumns;
+
+    /**
      * Default config for this helper.
      *
      * @var array<string, mixed>
@@ -321,11 +331,7 @@ class Datatable
     public function __construct($Helper)
     {
         $this->Helper = $Helper;
-        $this->setConfig($Helper->getConfig, null, true);
-
-        //if (empty($this->Helper->Html)) {
-        //    $this->Helper->Html = $this->Helper->getView()->loadHelper('Html');
-        //}
+        $this->setConfig($Helper->getConfig(), null, true);
     }
 
     public function setTableId(string $tableId)
