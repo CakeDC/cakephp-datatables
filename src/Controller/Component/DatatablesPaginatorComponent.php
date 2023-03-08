@@ -39,9 +39,14 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      */
     protected function applyOrder(ServerRequest $request, array $settings): array
     {
-        // translate ordering
-        $dtColumns = $request->getQuery('columns');
-        $dtOrders = (array)$request->getQuery('order');
+        if ($request->is('post')) {
+            $dtColumns = $request->getData('columns');
+            $dtOrders = (array)$request->getData('order');
+        } else {
+            $dtColumns = $request->getQuery('columns');
+            $dtOrders = (array)$request->getQuery('order');
+        }
+
         foreach ($dtOrders as $dtOrder) {
             $colIndex = (int)($dtOrder['column'] ?? 0);
             $colOrder = $dtOrder['dir'] ?? 'asc';
@@ -65,8 +70,13 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      */
     protected function applyLimits(ServerRequest $request, array $settings): array
     {
-        $dtStart = (int)$request->getQuery('start');
-        $dtLength = $request->getQuery('length') ? (int)$request->getQuery('length') : null;
+        if ($request->is('post')) {
+            $dtStart = (int)$request->getData('start');
+            $dtLength = $request->getData('length') ? (int)$request->getData('length') : null;
+        } else {
+            $dtStart = (int)$request->getQuery('start');
+            $dtLength = $request->getQuery('length') ? (int)$request->getQuery('length') : null;
+        }
 
         $settings['limit'] = $dtLength;
         if ($dtStart === 0) {
@@ -119,14 +129,21 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     {
         // translate ordering
         $request = $this->getController()->getRequest();
-        $dtColumns = $request->getQuery('columns', []);
+
+        if ($request->is('post')) {
+            $dtColumns = $request->getData('columns', []);
+        } else {
+            $dtColumns = $request->getQuery('columns', []);
+        }
+
         $newQueryParams = [];
         foreach ($dtColumns as $dtColumn) {
             if (($dtColumn['searchable'] ?? null) !== 'true') {
                 continue;
             }
             $colName = $dtColumn['data'];
-            if ($request->getQuery($colName)) {
+
+            if ($request->is('post') ? $request->getData($colName): $request->getQuery($colName)) {
                 // we already have a query param with values, ignoring this column
                 continue;
             }
@@ -140,6 +157,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
             }
             $newQueryParams[$colName] = $colSearch;
         }
+
         $request = $request->withQueryParams($request->getQueryParams() + $newQueryParams);
         $this->getController()->setRequest($request);
     }
