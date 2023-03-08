@@ -41,8 +41,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      */
     protected function applyOrder(array $data, array $settings): array
     {
-        $dtColumns = $data['columns'];
-        $dtOrders = $data['order'];
+        $dtColumns = $data['columns'] ?? [];
+        $dtOrders = $data['order'] ?? [];
 
         foreach ($dtOrders as $dtOrder) {
             $colIndex = (int)($dtOrder['column'] ?? 0);
@@ -67,8 +67,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      */
     protected function applyLimits(array $data, array $settings): array
     {
-        $dtStart = (int)$data['start'];
-        $dtLength = (int)$data['length'];
+        $dtStart = (int)$data['start'] ?? 0;
+        $dtLength = (int)$data['length'] ?? 0;
 
         $settings['limit'] = $dtLength;
         if ($dtStart === 0) {
@@ -133,7 +133,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
             if (!array_key_exists('data',$dtColumn)) {
                 continue;
             }
-            
+
             $colName = $dtColumn['data'];
 
             if ($request->is('post') ? $request->getData($colName): $request->getQuery($colName)) {
