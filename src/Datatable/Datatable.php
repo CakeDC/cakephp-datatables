@@ -438,7 +438,7 @@ class Datatable
                 'columnSearchTemplate' => $columnSearchTemplate,
                 'tagId' => $tagId,
                 'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
-                'pageLength' => $this->getConfig('pageLentgh') ?? '10',
+                'pageLength' => $this->getConfig('pageLength') ?? '10',
                 'processing' => $this->getConfig('processing') ? 'true' : 'false',
                 'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
                 'configColumns' => $this->configColumns,
