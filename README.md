@@ -324,7 +324,10 @@ For example if you are in /pages/index but you et date from /pages/list, is usef
 # Indicate specific type for ajax call
 You can specify on config "ajaxType" if would that ajax calls are GET or POST, for example
 ```php
-<?= $this->Datatable->getInstance()->setConfig('ajaxType', 'POST'); ?>
+<?php
+$this->Datatable->getInstance()->setConfig('ajaxType', 'POST');
+$this->Datatable->getInstance()->setConfig('csrfToken', $this->getRequest()->getAttribute("csrfToken"));
+?>
 ```
 Important: if you set POST you must set "unlockedActions" on Security Component, specify the target action in the controller's initialize function
 ```php
