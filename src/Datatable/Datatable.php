@@ -447,7 +447,7 @@ class Datatable
                 'tagId' => $tagId,
                 'fixedHeader' => $this->getConfig('fixedHeader') ? 'true' : 'false',
                 'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
-                'pageLength' => $this->getConfig('pageLentgh') ?? '10',
+                'pageLength' => $this->getConfig('pageLength') ?? '10',
                 'processing' => $this->getConfig('processing') ? 'true' : 'false',
                 'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
                 'configColumns' => $this->configColumns,
