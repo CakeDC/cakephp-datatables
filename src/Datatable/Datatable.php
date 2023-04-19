@@ -54,6 +54,7 @@ class Datatable
         'drawCallback' => null,
         //complete callback function
         'onCompleteCallback' => null,
+        'createdRow' => false,
         'ajaxUrl' => null,
         'ajaxType' => 'GET',
         'csrfToken' => null,
@@ -300,6 +301,7 @@ class Datatable
                 columnDefs: [
                     :definitionColumns
                 ],
+                :callbackCreatedRow
                 language: :language,
                 lengthMenu: :lengthMenu,
                 //@todo add function callback in callback Datatable function
@@ -391,6 +393,10 @@ class Datatable
         return $this->Helper->Html->tableHeaders($tableHeaders, $headersConfig['headersAttrsTr'], $headersConfig['headersAttrsTh']);
     }
 
+    public function setCallbackCreatedRow(string $functionCallback)
+    {
+        $this->setConfig('createdRow', $functionCallback);
+    }
 
     public function getDatatableScript(): string
     {
@@ -438,27 +444,35 @@ class Datatable
         }
 
         // @todo change values to config _default
+        $valuesToReplace = [
+            'getDataMethod' => $this->getDataTemplate,
+            'searchTemplate' => $searchTemplate,
+            'columnSearchTemplate' => $columnSearchTemplate,
+            'tagId' => $tagId,
+            'fixedHeader' => $this->getConfig('fixedHeader') ? 'true' : 'false',
+            'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
+            'pageLength' => $this->getConfig('pageLength') ?? '10',
+            'processing' => $this->getConfig('processing') ? 'true' : 'false',
+            'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
+            'configColumns' => $this->configColumns,
+            'definitionColumns' => $this->getConfig('definitionColumns'),
+            'language' => json_encode($this->getConfig('language')),
+            'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
+            'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
+            'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
+            'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
+            'tableCss' => json_encode($this->getConfig('tableCss')),
+        ];
+
+        if ($this->getConfig('createdRow')) {
+            $valuesToReplace['callbackCreatedRow'] = 'createdRow: ' . $this->getConfig('createdRow') . ',';
+        } else {
+            $valuesToReplace['callbackCreatedRow'] = '';
+        }
+
         return Text::insert(
             $this->datatableConfigurationTemplate,
-            [
-                'getDataMethod' => $this->getDataTemplate,
-                'searchTemplate' => $searchTemplate,
-                'columnSearchTemplate' => $columnSearchTemplate,
-                'tagId' => $tagId,
-                'fixedHeader' => $this->getConfig('fixedHeader') ? 'true' : 'false',
-                'autoWidth' => $this->getConfig('autoWidth') ? 'true' : 'false',
-                'pageLength' => $this->getConfig('pageLength') ?? '10',
-                'processing' => $this->getConfig('processing') ? 'true' : 'false',
-                'serverSide' => $this->getConfig('serverSide') ? 'true' : 'false',
-                'configColumns' => $this->configColumns,
-                'definitionColumns' => $this->getConfig('definitionColumns'),
-                'language' => json_encode($this->getConfig('language')),
-                'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
-                'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
-                'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
-                'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
-                'tableCss' => json_encode($this->getConfig('tableCss')),
-            ]
+            $valuesToReplace
         );
     }
 
