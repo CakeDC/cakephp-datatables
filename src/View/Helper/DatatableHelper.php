@@ -114,6 +114,12 @@ class DatatableHelper extends Helper
         $this->dtInstance->setRowActions($rowActions);
     }
 
+
+    public function setCallbackCreatedRow(string $functionCallback)
+    {
+        $this->dtInstance->setCallbackCreatedRow($functionCallback);
+    }
+
     /**
      * @param string $tagId
      * @return string
