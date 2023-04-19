@@ -400,11 +400,6 @@ class Datatable
 
     public function getDatatableScript(): string
     {
-        //debug('getDatatableScript');
-        //debug($this->getConfig('createdRow'));
-        //debug($this->getConfig('tableId'));
-        //die("2");
-
         if (empty($this->getDataTemplate)) {
             $this->setGetDataUrl();
         }
