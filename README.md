@@ -331,17 +331,31 @@ $this->Datatable->getInstance()->setConfig('csrfToken', $this->getRequest()->get
 ```
 Important: if you set POST you must set "unlockedActions" on Security Component, specify the target action in the controller's initialize function
 ```php
-    public function initialize(): void
-    {
-        parent::initialize();
+public function initialize(): void
+{
+    parent::initialize();
 
-        ...
+    ...
 
-        if ($this->components()->has('Security')) {
-            $this->Security->setConfig('unlockedActions', ['list']);
-        }
-
-        ...
-
+    if ($this->components()->has('Security')) {
+        $this->Security->setConfig('unlockedActions', ['list']);
     }
+
+    ...
+
+}
 ```
+
+# Add callback when row is created
+
+For example, if you need to add a css class (to change row color) to each tr according to a specific value in the data
+
+```php
+$this->Datatable->setCallbackCreatedRow(
+    'function( row, data, dataIndex ) {
+        if (!data.viewed) {
+            $(row).addClass("rowhighlight");
+        }
+    }'
+);
+``
