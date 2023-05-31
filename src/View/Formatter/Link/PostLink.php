@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Formatter\Link;
@@ -9,7 +8,7 @@ use CakeDC\Datatables\Datatables;
 
 class PostLink extends AbstractLink
 {
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'template' => '<a href=":href" target=":target" onclick=":onclick">:content</a>',
         'url' => null,
         'value' => null,
@@ -28,7 +27,7 @@ class PostLink extends AbstractLink
     {
         $urlExtraValue = '';
 
-        $url = $this->getConfig('url', null);
+        $url = $this->getConfig('url');
         if (is_array($url)) {
             $urlExtraValue = $url['extra'] ?? '';
             unset($url['extra']);
@@ -37,7 +36,7 @@ class PostLink extends AbstractLink
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
-                'href' => $this->_helper->Url->build($url) . $urlExtraValue,
+                'href' => $this->helper->Url->build($url) . $urlExtraValue,
                 'target' => $this->getConfig('target') ?: "' + {$this->getConfig('target')} + '",
                 'content' => $this->getConfig('label') ?: "' + {$this->getConfig('value')} + '",
                 'onclick' => $this->onclickAction(),
@@ -86,8 +85,7 @@ class PostLink extends AbstractLink
             return '';
         }
 
-        $output = '';
-        $output .= 'let form = document.createElement("form");';
+        $output = 'let form = document.createElement("form");';
         $output .= 'form.setAttribute("method", "' . $this->getConfig('type') . '");';
         $output .= 'form.setAttribute("action", element.getAttribute("href"));';
         $output .= $this->csrfField();
@@ -113,15 +111,14 @@ class PostLink extends AbstractLink
      */
     protected function csrfField(): string
     {
-        $request = $this->_helper->getView()->getRequest();
+        $request = $this->helper->getView()->getRequest();
 
         $csrfToken = $request->getAttribute('csrfToken');
         if (!$csrfToken) {
             return '';
         }
 
-        $output = '';
-        $output .= 'let csrfToken = document.createElement("input");';
+        $output = 'let csrfToken = document.createElement("input");';
         $output .= 'csrfToken.setAttribute("type", "hidden");';
         $output .= 'csrfToken.setAttribute("name", "_csrfToken");';
         $output .= 'csrfToken.setAttribute("value", "' . $csrfToken . '");';

@@ -12,7 +12,7 @@ use Cake\Routing\RouteBuilder;
 /**
  * Plugin for Datatables
  */
-class Plugin extends BasePlugin
+class DatatablesPlugin extends BasePlugin
 {
     /**
      * Load all the plugin configuration and bootstrap logic.
@@ -73,8 +73,6 @@ class Plugin extends BasePlugin
     {
         // Add your commands here
 
-        $commands = parent::console($commands);
-
-        return $commands;
+        return parent::console($commands);
     }
 }

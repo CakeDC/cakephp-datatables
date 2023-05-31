@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\Datatable;
@@ -7,13 +6,18 @@ namespace CakeDC\Datatables\Datatable;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
+use Cake\View\Helper;
 use CakeDC\Datatables\Datatables;
 use CakeDC\Datatables\Exception\MissConfiguredException;
+use CakeDC\Datatables\View\Formatter\Link\Link;
+use CakeDC\Datatables\View\Formatter\Link\PostLink;
+use CakeDC\Datatables\View\Helper\DatatableHelper;
 use Exception;
 use InvalidArgumentException;
+use OutOfBoundsException;
 
 /**
- * @property \Cake\View\Helper $Helper
+ * Datatable class
  */
 class Datatable
 {
@@ -22,19 +26,19 @@ class Datatable
     /**
      * @var string
      */
-    protected $getDataTemplate;
+    protected string $getDataTemplate;
 
     /**
      * @var string
      */
-    protected $configColumns;
+    protected string $configColumns;
 
     /**
      * Default config for this helper.
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'processing' => true,
         'serverSide' => true,
         // override to provide translations, @see https://datatables.net/examples/basic_init/language.html
@@ -101,15 +105,15 @@ class Datatable
         ],
     ];
 
-    protected $Helper;
+    protected Helper|DatatableHelper $Helper;
 
     /**
      * @var string[]
      */
-    protected $searchHeadersTypes = [];
+    protected array|string $searchHeadersTypes = [];
 
     // @todo chagen var to const/let
-    protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
+    protected string $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         var api = this.api();
 
         let columnsSearch = :searchTypes;
@@ -243,7 +247,7 @@ class Datatable
         });
     COLUMN_SEARCH_CONFIGURATION;
 
-    protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
+    protected string $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
         $('#:searchInput').on( 'keyup click', function () {
             $('#:tagId').DataTable().search(
                 $('#:searchInput').val()
@@ -252,7 +256,7 @@ class Datatable
     GENERIC_SEARCH_CONFIGURATION;
 
     // @todo change to Text::insert format
-    protected $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
+    protected string $columnSearchHeaderTemplate = <<<COLUMN_SEARCH_HEADER_CONFIGURATION
         const filters = $('#:tagId thead tr')
             .clone(true)
             .addClass('filters');
@@ -269,7 +273,7 @@ class Datatable
      *
      * @var string
      */
-    protected $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
+    protected string $datatableConfigurationTemplate = <<<DATATABLE_CONFIGURATION
         // Datatables configuration
         $(async () => {
 
@@ -328,31 +332,30 @@ class Datatable
     DATATABLE_CONFIGURATION;
 
     /**
-     * @param Helper $Helper
+     * @param \Cake\View\Helper $Helper
      */
-    public function __construct($Helper)
+    public function __construct(Helper $Helper)
     {
         $this->Helper = $Helper;
-        $this->setConfig($Helper->getConfig(), null, true);
+        $this->setConfig($Helper->getConfig());
     }
 
-    public function setTableId(string $tableId)
+    public function setTableId(string $tableId): self
     {
         $this->setConfig('tableId', $tableId);
 
         return $this;
     }
 
-    public function setHeaders(array $headers, array $configs = [])
+    public function setHeaders(array $headers, array $configs = []): self
     {
-
         $this->setConfig('headers', $headers);
-        $this->setConfig('headersConfig', $configs, true);
+        $this->setConfig('headersConfig', $configs);
 
         return $this;
     }
 
-    public function setFields(array $fields)
+    public function setFields(array $fields): self
     {
         if (empty($fields)) {
             throw new InvalidArgumentException(__('Couldn\'t get first item'));
@@ -363,19 +366,22 @@ class Datatable
         return $this;
     }
 
-    public function setRowActions(array $rowActions, bool $merge = false)
+    public function setRowActions(array $rowActions, bool $merge = false): self
     {
         $this->setConfig('rowActions', $rowActions, $merge);
 
         return $this;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function getTableHeaders()
     {
         $tableHeaders = $this->getConfig('headers');
 
         if (empty($tableHeaders)) {
-            throw new Exception();
+            throw new Exception('No table headers defined');
         }
 
         $headersConfig = $this->getConfig('headersConfig');
@@ -393,11 +399,14 @@ class Datatable
         return $this->Helper->Html->tableHeaders($tableHeaders, $headersConfig['headersAttrsTr'], $headersConfig['headersAttrsTh']);
     }
 
-    public function setCallbackCreatedRow(string $functionCallback)
+    public function setCallbackCreatedRow(string $functionCallback): void
     {
         $this->setConfig('createdRow', $functionCallback);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function getDatatableScript(): string
     {
         if (empty($this->getDataTemplate)) {
@@ -481,7 +490,7 @@ class Datatable
         return 'console.log("from getCommonScript")';
     }
 
-    public function setGetDataUrl($defaultUrl = null)
+    public function setGetDataUrl($defaultUrl = null): void
     {
         $url = (array) $this->getConfig('ajaxUrl', $defaultUrl);
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
@@ -496,7 +505,7 @@ class Datatable
             $this->getDataTemplate = <<<GET_DATA
             let getData = async () => {
                 return {
-                    url:'{$url}',
+                    url:'$url',
                     data: function ( d ) {
                             return $.extend( {}, d, {
                                 $extraFields
@@ -507,7 +516,7 @@ class Datatable
             GET_DATA;
         } else {
             if ($csrfToken !== null){
-                $headers = "headers: { 'X-CSRF-Token': '{$csrfToken}' },";
+                $headers = "headers: { 'X-CSRF-Token': '$csrfToken' },";
             } else {
                 $headers = "";
             }
@@ -515,21 +524,21 @@ class Datatable
                 let getData = async () => {
                     return {
                         {$headers}
-                        url:'{$url}',
-                        type: '{$ajaxType}',
+                        url:'$url',
+                        type: '$ajaxType',
                     }
                 };
             GET_DATA;
         }
     }
 
-    protected function processExtraFields()
+    protected function processExtraFields(): string
     {
         $rows = [];
         foreach ($this->getConfig('extraFields') as $definition) {
             $parts = [];
             foreach ($definition as $key => $val) {
-                $parts[] = "'{$key}': {$val}";
+                $parts[] = "'$key': $val";
             }
             $rows[] = implode(',', $parts);
         }
@@ -540,15 +549,16 @@ class Datatable
     /**
      * Loop columns and create callbacks or simple json objects accordingly.
      *
-     * @todo:  refactor into data object to define the column properties accordingly
      * @return void
+     * @throws \Exception
+     * @todo:  refactor into data object to define the column properties accordingly
      */
-    protected function processColumnRenderCallbacks()
+    protected function processColumnRenderCallbacks(): void
     {
         $processor = function ($key) {
             $output = '{';
             if (is_string($key)) {
-                $output .= "data: '{$key}'";
+                $output .= "data: '$key'";
             } else {
                 if (!isset($key['name'])) {
                     return '';
@@ -587,8 +597,9 @@ class Datatable
     /**
      *  Process links to prepare them for the datatable.
      *
-     * @param  array $sourceLinks
+     * @param array $sourceLinks
      * @return array
+     * @throws \Exception
      */
     protected function processActionLinkList(array $sourceLinks): array
     {
@@ -603,8 +614,9 @@ class Datatable
     /**
      * Format link with specified options from links array.
      *
-     * @param  array $link
+     * @param array $link
      * @return string
+     * @throws \Exception
      */
     protected function processActionLink(array $link): string
     {
@@ -612,22 +624,22 @@ class Datatable
             case Datatables::LINK_TYPE_DELETE:
             case Datatables::LINK_TYPE_PUT:
             case Datatables::LINK_TYPE_POST:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this->Helper, $link);
+                $output = new PostLink($this->Helper, $link);
                 break;
             case Datatables::LINK_TYPE_CUSTOM:
                 if (!class_exists($link['formatter'] ?? null)) {
-                    throw new \OutOfBoundsException("Please specify a custom formatter");
+                    throw new OutOfBoundsException("Please specify a custom formatter");
                 }
                 $output = new $link['formatter']($this->Helper, $link);
 
                 if (!method_exists($output, 'link')) {
-                    throw new \OutOfBoundsException("Method link is not found in class");
+                    throw new OutOfBoundsException("Method link is not found in class");
                 }
 
                 break;
             case Datatables::LINK_TYPE_GET:
             default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this->Helper, $link);
+                $output = new Link($this->Helper, $link);
                 break;
         }
 
@@ -637,13 +649,13 @@ class Datatable
     /**
      * Loop columns definitions to set properties inside ColumnDefs as orderable or searchable
      */
-    protected function processColumnDefinitionsCallbacks()
+    protected function processColumnDefinitionsCallbacks(): void
     {
         $rows = [];
         foreach ($this->getConfig('definitionColumns') as $definition) {
             $parts = [];
             foreach ($definition as $key => $val) {
-                $parts[] = "'{$key}': {$val}";
+                $parts[] = "'$key': $val";
             }
             $rows[] = '{' . implode(',', $parts) . '}';
         }
@@ -678,9 +690,9 @@ class Datatable
                     } else {
                         $data = '[]';
                     }
-                    $parts[] = "'{$parKey}': {$data}";
+                    $parts[] = "'$parKey': $data";
                 } else {
-                    $parts[] = "'{$parKey}': '{$parVal}'";
+                    $parts[] = "'$parKey': '$parVal'";
                 }
             }
             $rows[] = '{' . implode(',', $parts) . '}';
@@ -706,7 +718,7 @@ class Datatable
                 if (isset($key['searchInput'])) {
                     $searchTypes[] = [
                         'type' => $key['searchInput']['type'],
-                        'data' => (isset($key['searchInput']['options']) ? $key['searchInput']['options'] : []),
+                        'data' => ($key['searchInput']['options'] ?? []),
                     ];
                 } else {
                     $searchTypes[] = ['type' => 'input', 'data' => []];
@@ -720,9 +732,9 @@ class Datatable
     /**
      * Validate configuration options for the datatable.
      *
-     * @throws \Datatables\Exception\MissConfiguredException
+     * @throws \CakeDC\Datatables\Exception\MissConfiguredException
      */
-    protected function validateConfigurationOptions()
+    protected function validateConfigurationOptions(): void
     {
         if (empty($this->getConfig('fields'))) {
             throw new MissConfiguredException(__('There are not columns specified for your datatable.'));
@@ -739,7 +751,7 @@ class Datatable
      * @param  \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
      * @return void
      */
-    public function setDefinitions(iterable $dataDefinitions)
+    public function setDefinitions(iterable $dataDefinitions): void
     {
         $this->setConfig('definitionColumns', $dataDefinitions);
     }

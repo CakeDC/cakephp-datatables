@@ -3,40 +3,37 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\Controller\Component;
 
-use Cake\Controller\Component\PaginatorComponent;
-use Cake\Datasource\ResultSetInterface;
-use Cake\Http\ServerRequest;
+use Cake\Controller\Component;
+use Cake\Datasource\Paging\PaginatedInterface;
 
 /**
  * DatatablesPaginator component
  */
-class DatatablesPaginatorComponent extends PaginatorComponent
+class DatatablesPaginatorComponent extends Component
 {
     /**
      * Default configuration.
      *
      * @var array
      */
-    protected $_defaultConfig = [
-    ];
+    protected array $_defaultConfig = [];
 
-    public function paginate(object $object, array $settings = []): ResultSetInterface
+    public function paginate(object $object, array $settings = []): PaginatedInterface
     {
         $request = $this->getController()->getRequest();
         $dtData = $request->is('post') ? $request->getData() : $request->getQueryParams();
 
         $settings = $this->applyOrder($dtData, $settings);
         $settings = $this->applyLimits($dtData, $settings);
-        $resultSet = parent::paginate($object, $settings);
 
-        return $resultSet;
+        return $this->getController()->paginate($object, $settings);
     }
 
     /**
      * Translate between datatables and CakePHP pagination order
      *
-     * @param  \Cake\Http\ServerRequest $request
-     * @param  array                    $settings
+     * @param array $data
+     * @param array $settings
      * @return array
      */
     protected function applyOrder(array $data, array $settings): array
@@ -48,7 +45,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
             $colIndex = (int)($dtOrder['column'] ?? 0);
             $colOrder = $dtOrder['dir'] ?? 'asc';
             $colOrderable = $dtColumns[$colIndex]['orderable'] ?? null;
-            if (!$colOrderable === 'true') {
+            if (!$colOrderable == 'true') {
                 continue;
             }
             $colName = $dtColumns[$colIndex]['data'];
@@ -61,8 +58,8 @@ class DatatablesPaginatorComponent extends PaginatorComponent
     /**
      * Translate limit and offset from datatables
      *
-     * @param  \Cake\Http\ServerRequest $request
-     * @param  array                    $settings
+     * @param array $data
+     * @param array $settings
      * @return array
      */
     protected function applyLimits(array $data, array $settings): array
@@ -92,21 +89,17 @@ class DatatablesPaginatorComponent extends PaginatorComponent
         if (is_array($pagingData) && count($pagingData) === 1) {
             $pagingData = reset($pagingData);
         }
-        $this->getController()->set(
-            [
+        $this->getController()->set([
             'data' => $resultSet,
             'recordsTotal' => $pagingData['count'] ?? 0,
             'recordsFiltered' => $pagingData['count'] ?? 0,
-            ]
-        );
-        $this->getController()->viewBuilder()->setOption(
-            'serialize', [
+        ]);
+        $this->getController()->viewBuilder()->setOption('serialize', [
             'data',
             'draw',
             'recordsTotal',
             'recordsFiltered',
-            ]
-        );
+        ]);
     }
 
     /**
@@ -136,7 +129,7 @@ class DatatablesPaginatorComponent extends PaginatorComponent
 
             $colName = $dtColumn['data'];
 
-            if ($request->is('post') ? $request->getData($colName): $request->getQuery($colName)) {
+            if ($request->is('post') ? $request->getData($colName) : $request->getQuery($colName)) {
                 // we already have a query param with values, ignoring this column
                 continue;
             }

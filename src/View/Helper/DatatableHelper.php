@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * DatatableHelper class helper to generate datatable.
@@ -6,9 +7,6 @@
  * @todo check width not working
  * PHP version 7.4
  */
-
-declare(strict_types=1);
-
 namespace CakeDC\Datatables\View\Helper;
 
 use Cake\View\Helper;
@@ -17,19 +15,19 @@ use CakeDC\Datatables\Datatable\Datatable;
 /**
  * Datatable helper
  *
- * @property \CakeDC\Datatables\View\Helper\HtmlHelper $Html
+ * @property \Cake\View\Helper\HtmlHelper $Html
  * @property \Cake\View\Helper\UrlHelper $Url
  */
 class DatatableHelper extends Helper
 {
-    protected $helpers = ['Url', 'Html'];
+    protected array $helpers = ['Url', 'Html'];
 
     /**
      * Default Datatable js library configuration.
      *
      * @var array
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'processing' => true,
         'serverSide' => true,
         // override to provide translations, @see https://datatables.net/examples/basic_init/language.html
@@ -74,7 +72,7 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * @return Datatable
+     * @return \CakeDC\Datatables\Datatable\Datatable
      */
     public function reset(): Datatable
     {
@@ -84,7 +82,7 @@ class DatatableHelper extends Helper
     }
 
     /**
-     * @return Datatable
+     * @return \CakeDC\Datatables\Datatable\Datatable
      */
     public function getInstance(): Datatable
     {
@@ -100,7 +98,7 @@ class DatatableHelper extends Helper
      * @param array $fields
      * @return void
      */
-    public function setFields(array $fields)
+    public function setFields(array $fields): void
     {
         $this->dtInstance->setFields($fields);
     }
@@ -109,13 +107,13 @@ class DatatableHelper extends Helper
      * @param array $rowActions
      * @return void
      */
-    public function setRowActions(array $rowActions)
+    public function setRowActions(array $rowActions): void
     {
         $this->dtInstance->setRowActions($rowActions);
     }
 
 
-    public function setCallbackCreatedRow(string $functionCallback)
+    public function setCallbackCreatedRow(string $functionCallback): void
     {
         $this->dtInstance->setCallbackCreatedRow($functionCallback);
     }
@@ -123,6 +121,7 @@ class DatatableHelper extends Helper
     /**
      * @param string $tagId
      * @return string
+     * @throws \Exception
      */
     public function getDatatableScript(string $tagId): string
     {
@@ -139,12 +138,13 @@ class DatatableHelper extends Helper
     /**
      * Get formatted table headers
      *
-     * @param  array|null $tableHeaders
-     * @param  bool       $format
-     * @param  bool       $translate
-     * @param  array      $headersAttrsTr
-     * @param  array      $headersAttrsTh
+     * @param array|null $tableHeaders
+     * @param bool $format
+     * @param bool $translate
+     * @param array $headersAttrsTr
+     * @param array $headersAttrsTh
      * @return string
+     * @throws \Exception
      */
     public function getTableHeaders(
         ?array $tableHeaders = null,
@@ -163,5 +163,4 @@ class DatatableHelper extends Helper
             ])
             ->getTableHeaders();
     }
-
 }
