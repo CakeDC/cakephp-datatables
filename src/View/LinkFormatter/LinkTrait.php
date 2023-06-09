@@ -66,25 +66,4 @@ trait LinkTrait
             'valueObj' => $this->getConfig('value'),
         ]);
     }
-
-    /*
-    protected $displayCondition = <<<DISPLAY_CONDITION_SCRIPT
-    function () {
-        const displayCondition = :displayCondition
-        return displayCondition(obj)
-    }
-    DISPLAY_CONDITION_SCRIPT;
-
-    public function displayCondition(string $htmlLink)
-    {
-        if ($this->getConfig('displayCondition', true)) {
-            return true;
-        }
-
-        return Text::insert($this->conditionalLinkScript, [
-            'disable' => $this->getConfig('displayCondition'),
-        ]);
-    }
-    */
-
 }
