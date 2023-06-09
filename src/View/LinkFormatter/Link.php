@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 
-namespace CakeDC\Datatables\View\Formatter\Link;
+namespace CakeDC\Datatables\View\LinkFormatter;
 
 use Cake\Utility\Text;
 use CakeDC\Datatables\Datatables;
 
-class Link extends AbstractLink
+class Link implements LinkInterface
 {
+    use LinkTrait;
+
     protected $_defaultConfig = [
         'template' => '<a href=":href" target=":target">:content</a>',
         'url' => null,
         'value' => null,
         'label' => null,
         'disable' => null,
+        'disableValue' => '',
         'type' => Datatables::LINK_TYPE_GET,
         'confirm' => false,
         'target' => '_self',
@@ -23,7 +26,7 @@ class Link extends AbstractLink
     /**
      * @return string
      */
-    public function link(): string
+    public function render(): string
     {
         $urlExtraValue = '';
 

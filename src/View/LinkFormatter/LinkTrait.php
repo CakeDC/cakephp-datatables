@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CakeDC\Datatables\View\Formatter\Link;
+namespace CakeDC\Datatables\View\LinkFormatter;
 
 use Cake\Core\InstanceConfigTrait;
+use Cake\Utility\Text;
 use Cake\View\Helper;
 use Exception;
 
-class AbstractLink
+trait LinkTrait
 {
     use InstanceConfigTrait;
 
@@ -36,10 +37,22 @@ class AbstractLink
     /**
      * @return string
      */
-    public function link(): string
+    public function render(): string
     {
         return '';
     }
+
+    protected $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
+    function (value) {
+        const disable = :disable
+        if (disable(value, obj)) {
+            return value ?? "";
+        }
+
+        return ':htmlLink';
+    }(:valueObj)
+    CONDITIONAL_LINK_SCRIPT;
+
 
     protected function conditionalLink(string $htmlLink)
     {
@@ -47,13 +60,10 @@ class AbstractLink
             return '\'' . $htmlLink . '\'';
         }
 
-        return 'function(value) {
-            let disable = ' . $this->getConfig('disable') . '
-            if (disable(value, obj)) {
-                return value;
-            }
-
-            return \'' . $htmlLink . '\';
-        }(' . $this->getConfig('value') . ')';
+        return Text::insert($this->conditionalLinkScript, [
+            'disable' => $this->getConfig('disable'),
+            'htmlLink' => $htmlLink,
+            'valueObj' => $this->getConfig('value'),
+        ]);
     }
 }
