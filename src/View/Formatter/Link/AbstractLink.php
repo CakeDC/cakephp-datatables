@@ -1,22 +1,25 @@
 <?php
-
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Formatter\Link;
 
 use Cake\Core\InstanceConfigTrait;
 use Cake\View\Helper;
+use CakeDC\Datatables\View\Helper\DatatableHelper;
 use Exception;
 
 class AbstractLink
 {
     use InstanceConfigTrait;
 
-    protected $_helper;
+    protected Helper|DatatableHelper $helper;
 
+    /**
+     * @throws \Exception
+     */
     public function __construct(Helper $helper, array $config = [])
     {
-        $this->_helper = $helper;
+        $this->helper = $helper;
         $this->setConfig($config);
         $this->initialize($config);
 
@@ -41,7 +44,7 @@ class AbstractLink
         return '';
     }
 
-    protected function conditionalLink(string $htmlLink)
+    protected function conditionalLink(string $htmlLink): string
     {
         if (empty($this->getConfig('disable'))) {
             return '\'' . $htmlLink . '\'';

@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\Formatter\Link;
@@ -9,7 +8,7 @@ use CakeDC\Datatables\Datatables;
 
 class Link extends AbstractLink
 {
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'template' => '<a href=":href" target=":target">:content</a>',
         'url' => null,
         'value' => null,
@@ -27,7 +26,7 @@ class Link extends AbstractLink
     {
         $urlExtraValue = '';
 
-        $url = $this->getConfig('url', null);
+        $url = $this->getConfig('url');
         if (is_array($url)) {
             $urlExtraValue = $url['extra'] ?? '';
             unset($url['extra']);
@@ -36,7 +35,7 @@ class Link extends AbstractLink
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
-                'href' => $this->_helper->Url->build($url) . $urlExtraValue,
+                'href' => $this->helper->Url->build($url) . $urlExtraValue,
                 'target' => $this->getConfig('target') ?: "' + {$this->getConfig('target')} + '",
                 'content' => $this->getConfig('label') ?: "' + {$this->getConfig('value')} + '",
             ]
