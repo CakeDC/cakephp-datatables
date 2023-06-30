@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\Datatable;
 
-use Cake\Core\InstanceConfigTrait;
-use Cake\Utility\Inflector;
-use Cake\Utility\Text;
 use CakeDC\Datatables\Datatables;
 use CakeDC\Datatables\Exception\MissConfiguredException;
 use CakeDC\Datatables\View\LinkFormatter\LinkInterface;
+use Cake\Core\InstanceConfigTrait;
+use Cake\Utility\Inflector;
+use Cake\Utility\Text;
 use Exception;
 use InvalidArgumentException;
 
@@ -475,6 +475,11 @@ class Datatable
             $this->datatableConfigurationTemplate,
             $valuesToReplace
         );
+    }
+
+    public function setCallback($callback): void
+    {
+        $this->setConfig('drawCallback', $callback);
     }
 
     public function getCommonScript(): string
