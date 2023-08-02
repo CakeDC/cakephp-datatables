@@ -5,14 +5,14 @@ namespace CakeDC\Datatables\Datatable;
 
 use CakeDC\Datatables\Datatables;
 use CakeDC\Datatables\Exception\MissConfiguredException;
+use CakeDC\Datatables\View\LinkFormatter\Link;
 use CakeDC\Datatables\View\LinkFormatter\LinkInterface;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
 use Cake\View\Helper;
-use CakeDC\Datatables\View\Formatter\Link\Link;
-use CakeDC\Datatables\View\Formatter\Link\PostLink;
 use CakeDC\Datatables\View\Helper\DatatableHelper;
+use CakeDC\Datatables\View\LinkFormatter\PostLink;
 use Exception;
 use InvalidArgumentException;
 use OutOfBoundsException;
@@ -620,8 +620,9 @@ class Datatable
     /**
      * Format link with specified options from links array.
      *
-     * @param  array $link
+     * @param array $link
      * @return LinkInterface
+     * @throws \Exception
      */
     protected function processActionLink(array $link): LinkInterface
     {
@@ -633,7 +634,7 @@ class Datatable
                 break;
             case Datatables::LINK_TYPE_CUSTOM:
                 if (!class_exists($link['linkFormatter'] ?? null)) {
-                    throw new \OutOfBoundsException("Please specify a custom linkFormatter");
+                    throw new OutOfBoundsException("Please specify a custom linkFormatter");
                 }
                 $output = new $link['linkFormatter']($this->Helper, $link);
                 break;
