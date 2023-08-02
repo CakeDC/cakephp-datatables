@@ -163,4 +163,9 @@ class DatatableHelper extends Helper
             ])
             ->getTableHeaders();
     }
+
+    public function setCallback(string $functionCallback)
+    {
+        $this->dtInstance->setCallback($functionCallback);
+    }
 }
