@@ -67,18 +67,12 @@ class DatatablesPaginatorComponent extends PaginatorComponent
      */
     protected function filterOrder(string $colName, string $colOrder): array
     {
-        $filters = $this->getConfig('filterOrder');
-
-        if (empty($filters)) {
-            return [$colName => $colOrder];
-        }
-
-        $output = [];
+        $filters = $this->getConfig('filterOrder') ?? [];
         if (isset($filters[$colName])) {
-            $output = array_fill_keys($filters[$colName], $colOrder);
+            return array_fill_keys($filters[$colName] ?? [], $colOrder);
         }
 
-        return $output;
+        return [$colName => $colOrder];
     }
 
     /**
