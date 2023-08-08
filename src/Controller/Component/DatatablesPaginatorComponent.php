@@ -6,6 +6,7 @@ namespace CakeDC\Datatables\Controller\Component;
 use Cake\Controller\Component\PaginatorComponent;
 use Cake\Datasource\ResultSetInterface;
 use Cake\Http\ServerRequest;
+use Migrations\ConfigurationTrait;
 
 /**
  * DatatablesPaginator component
@@ -52,10 +53,32 @@ class DatatablesPaginatorComponent extends PaginatorComponent
                 continue;
             }
             $colName = $dtColumns[$colIndex]['data'];
-            $settings['order'][$colName] = $colOrder;
+
+            $settings['order'] = array_merge($settings['order'] ?? [], $this->filterOrder($colName, $colOrder));
         }
 
         return $settings;
+    }
+
+    /**
+     * @param string $colName
+     * @param string $colOrder
+     * @return array
+     */
+    protected function filterOrder(string $colName, string $colOrder): array
+    {
+        $filters = $this->getConfig('filterOrder');
+
+        if (empty($filters)) {
+            return [$colName => $colOrder];
+        }
+
+        $output = [];
+        if (isset($filters[$colName])) {
+            $output = array_fill_keys($filters[$colName], $colOrder);
+        }
+
+        return $output;
     }
 
     /**
