@@ -5,13 +5,11 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1",
-        "cakephp/cakephp": "5.0.0-RC2"
+        "cakephp/cakephp": "^5.0.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.1.0"
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "CakeDC\\Datatables\\": "src/"
@@ -24,6 +22,17 @@
         }
     },
     "scripts": {
-        "cs-check": "phpcs --colors -p -s --extensions=php src/ tests/"
+        "cs-check": "phpcs --colors --parallel=16 -p src/ tests/",
+        "cs-fix": "phpcbf --colors --parallel=16 -p src/ tests/",
+        "phpstan": "tools/phpstan analyse",
+        "psalm": "tools/psalm --show-info=false",
+        "stan": [
+            "@phpstan",
+            "@psalm"
+        ],
+        "stan-baseline": "tools/phpstan --generate-baseline",
+        "psalm-baseline": "tools/psalm  --set-baseline=psalm-baseline.xml",
+        "stan-setup": "phive install",
+        "test": "phpunit"
     }
 }
