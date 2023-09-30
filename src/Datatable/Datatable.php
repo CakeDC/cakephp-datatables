@@ -179,20 +179,33 @@ class Datatable
                             $('#:tagId').find('#from'+colIdx)
                             .datepicker()
                             .on('change', function () {
-                                if($('#to'+colIdx).val() !== '') {
+                                if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
                                     api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
+                                    $('#to'+colIdx).val('');
+                                    if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
+                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
+                                    } else {
+                                        $('#from'+colIdx).val('');
+                                        api.column(colIdx).search('').draw();
+                                    }
                                 }
                             });
                             $('#:tagId').find('#to'+colIdx)
                             .datepicker()
                             .on('change', function () {
-                                if($('#from'+colIdx).val() !== '') {
+                                if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
                                     api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search( '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    $('#from'+colIdx).val('');
+                                    if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
+                                        api.column(colIdx).search('|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    } else {
+                                        $('#to'+colIdx).val('');
+                                        api.column(colIdx).search('').draw();
+                                    }
                                 }
+
                             });
                             break;
                         case 'input':
@@ -328,6 +341,12 @@ class Datatable
                         $('.form-select-multiple').select2();
                     });
                 });
+            }
+
+            function validateDate(text) {
+                text = text.replaceAll("/","-");
+                var re = /^(\d{4}(-)\d{2}(-)\d{2}|\d{2}(-)\d{2}(-)\d{4})$/;
+                return re.test(text);
             }
         });
     DATATABLE_CONFIGURATION;
