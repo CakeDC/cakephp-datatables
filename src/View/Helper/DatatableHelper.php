@@ -93,7 +93,6 @@ class DatatableHelper extends Helper
         return $this->dtInstance;
     }
 
-
     /**
      * @param array $fields
      * @return void
@@ -111,7 +110,6 @@ class DatatableHelper extends Helper
     {
         $this->dtInstance->setRowActions($rowActions);
     }
-
 
     public function setCallbackCreatedRow(string $functionCallback): void
     {
@@ -164,7 +162,7 @@ class DatatableHelper extends Helper
             ->getTableHeaders();
     }
 
-    public function setCallback(string $functionCallback)
+    public function setCallback(string $functionCallback): void
     {
         $this->dtInstance->setCallback($functionCallback);
     }

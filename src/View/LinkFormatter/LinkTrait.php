@@ -36,12 +36,12 @@ trait LinkTrait
         $this->initialize($config);
 
         if (empty($this->getConfig('url'))) {
-            throw new Exception("url option cannot be empty");
+            throw new Exception('url option cannot be empty');
         }
     }
 
     /**
-     * @param  array $config
+     * @param array $config
      * @return void
      */
     public function initialize(array $config = []): void

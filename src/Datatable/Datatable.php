@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\Datatable;
 
-use CakeDC\Datatables\Datatables;
-use CakeDC\Datatables\Exception\MissConfiguredException;
-use CakeDC\Datatables\View\LinkFormatter\Link;
-use CakeDC\Datatables\View\LinkFormatter\LinkInterface;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
 use Cake\View\Helper;
+use CakeDC\Datatables\Datatables;
+use CakeDC\Datatables\Exception\MissConfiguredException;
 use CakeDC\Datatables\View\Helper\DatatableHelper;
+use CakeDC\Datatables\View\LinkFormatter\Link;
+use CakeDC\Datatables\View\LinkFormatter\LinkInterface;
 use CakeDC\Datatables\View\LinkFormatter\PostLink;
 use Exception;
 use InvalidArgumentException;
@@ -109,7 +109,7 @@ class Datatable
     protected Helper|DatatableHelper $Helper;
 
     /**
-     * @var string[]
+     * @var array<string>
      */
     protected array|string $searchHeadersTypes = [];
 
@@ -435,7 +435,6 @@ class Datatable
 
         $tagId = $this->getConfig('tableId');
 
-
         $this->processColumnRenderCallbacks();
         $this->processColumnDefinitionsCallbacks();
         $this->searchHeadersTypes = $this->processColumnTypeSearch();
@@ -517,7 +516,7 @@ class Datatable
 
     public function setGetDataUrl($defaultUrl = null): void
     {
-        $url = (array) $this->getConfig('ajaxUrl', $defaultUrl);
+        $url = (array)$this->getConfig('ajaxUrl', $defaultUrl);
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
         $url = $this->Helper->Url->build($url);
 
@@ -543,7 +542,7 @@ class Datatable
             if ($csrfToken !== null) {
                 $headers = "headers: { 'X-CSRF-Token': '$csrfToken' },";
             } else {
-                $headers = "";
+                $headers = '';
             }
             $this->getDataTemplate = <<<GET_DATA
                 let getData = async () => {
@@ -576,7 +575,7 @@ class Datatable
      *
      * @return void
      * @throws \Exception
-     * @todo:  refactor into data object to define the column properties accordingly
+     * @todo: refactor into data object to define the column properties accordingly
      */
     protected function processColumnRenderCallbacks(): void
     {
@@ -593,7 +592,7 @@ class Datatable
                 if (isset($key['links'])) {
                     $output .= "\nrender: function(data, type, obj) { ";
                     $links = $this->processActionLinkList((array)$key['links']);
-                    $output .= "return " . implode("\n + ", $links);
+                    $output .= 'return ' . implode("\n + ", $links);
                     $output .= '},';
                 }
                 if ($key['render'] ?? null) {
@@ -640,7 +639,7 @@ class Datatable
      * Format link with specified options from links array.
      *
      * @param array $link
-     * @return LinkInterface
+     * @return \CakeDC\Datatables\View\LinkFormatter\LinkInterface
      * @throws \Exception
      */
     protected function processActionLink(array $link): LinkInterface
@@ -653,7 +652,7 @@ class Datatable
                 break;
             case Datatables::LINK_TYPE_CUSTOM:
                 if (!class_exists($link['linkFormatter'] ?? null)) {
-                    throw new OutOfBoundsException("Please specify a custom linkFormatter");
+                    throw new OutOfBoundsException('Please specify a custom linkFormatter');
                 }
                 $output = new $link['linkFormatter']($this->Helper, $link);
                 break;
@@ -724,14 +723,13 @@ class Datatable
     /**
      * Fill default types for search headers
      *
-     * @param  array $datakeys Number of columns in searchable columns
+     * @param array $datakeys Number of columns in searchable columns
      * @return array
      */
     protected function fillTypes(array $datakeys): array
     {
         $searchTypes = [];
         foreach ($datakeys as $name => $key) {
-
             if (isset($key['searchable']) && $key['searchable'] == 'false') {
                 $searchTypes[] = [];
             } else {
@@ -768,7 +766,7 @@ class Datatable
     /**
      * Set columns definitions as orderable and sortable
      *
-     * @param  \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
+     * @param \Cake\Collection\Collection $dataDefinitions array of definitions in columns as orderable and sortable
      * @return void
      */
     public function setDefinitions(iterable $dataDefinitions): void

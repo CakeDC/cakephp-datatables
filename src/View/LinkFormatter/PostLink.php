@@ -101,7 +101,7 @@ class PostLink implements LinkInterface
     }
 
     /**
-     * @param  string $input
+     * @param string $input
      * @return string
      */
     protected function changeQuotes(string $input): string
@@ -141,7 +141,7 @@ class PostLink implements LinkInterface
         if ($formTokenData !== null) {
             $session = $this->_helper->getView()->getRequest()->getSession();
             $session->start();
-    
+
             return new FormProtector(
                 $formTokenData
             );
