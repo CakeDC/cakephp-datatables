@@ -16,6 +16,7 @@ use CakeDC\Datatables\View\LinkFormatter\PostLink;
 use Exception;
 use InvalidArgumentException;
 use OutOfBoundsException;
+use function Cake\I18n\__;
 
 /**
  * Datatable class
@@ -111,7 +112,7 @@ class Datatable
     /**
      * @var array<string>
      */
-    protected array|string $searchHeadersTypes = [];
+    protected array $searchHeadersTypes = [];
 
     // @todo chagen var to const/let
     protected string $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
@@ -132,7 +133,8 @@ class Datatable
                 if (columnsSearch[colIdx].type !== undefined) {
                     switch (columnsSearch[colIdx].type) {
                         case 'multiple':
-                            cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
+                            cell.html('<select class="form-select-multiple" multiple="multiple">' +
+                            '<option value=""></option></select>');
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
@@ -175,12 +177,16 @@ class Datatable
 
                         case 'date':
                             title = cell.data('header') ?? '';
-                            cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                            cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" ' +
+                                'data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" ' +
+                                'class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" ' +
+                                'placeholder="'+ title +'" />')
                             $('#:tagId').find('#from'+colIdx)
                             .datepicker()
                             .on('change', function () {
                                 if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' +
+                                        $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
                                     $('#to'+colIdx).val('');
                                     if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
@@ -195,7 +201,8 @@ class Datatable
                             .datepicker()
                             .on('change', function () {
                                 if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' +
+                                        $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
                                     $('#from'+colIdx).val('');
                                     if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
@@ -360,6 +367,9 @@ class Datatable
         $this->setConfig($Helper->getConfig());
     }
 
+    /**
+     * Set table id
+     */
     public function setTableId(string $tableId): self
     {
         $this->setConfig('tableId', $tableId);
@@ -367,7 +377,10 @@ class Datatable
         return $this;
     }
 
-    public function setHeaders(array $headers, array $configs = []): self
+    /**
+     * Set headers
+     */
+    public function setHeaders(?array $headers, array $configs = []): self
     {
         $this->setConfig('headers', $headers);
         $this->setConfig('headersConfig', $configs);
@@ -375,6 +388,9 @@ class Datatable
         return $this;
     }
 
+    /**
+     * Set fields
+     */
     public function setFields(array $fields): self
     {
         if (empty($fields)) {
@@ -386,6 +402,9 @@ class Datatable
         return $this;
     }
 
+    /**
+     * Set row actions
+     */
     public function setRowActions(array $rowActions, bool $merge = false): self
     {
         $this->setConfig('rowActions', $rowActions, $merge);
@@ -396,7 +415,7 @@ class Datatable
     /**
      * @throws \Exception
      */
-    public function getTableHeaders()
+    public function getTableHeaders(): string
     {
         $tableHeaders = $this->getConfig('headers');
 
@@ -416,9 +435,16 @@ class Datatable
             }
         }
 
-        return $this->Helper->Html->tableHeaders($tableHeaders, $headersConfig['headersAttrsTr'], $headersConfig['headersAttrsTh']);
+        return $this->Helper->Html->tableHeaders(
+            $tableHeaders,
+            $headersConfig['headersAttrsTr'],
+            $headersConfig['headersAttrsTh']
+        );
     }
 
+    /**
+     * Set callback created row
+     */
     public function setCallbackCreatedRow(string $functionCallback): void
     {
         $this->setConfig('createdRow', $functionCallback);
@@ -487,7 +513,9 @@ class Datatable
             'language' => json_encode($this->getConfig('language')),
             'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
             'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
-            'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
+            'onCompleteCallback' => $this->getConfig('onCompleteCallback') ?
+                $this->getConfig('onCompleteCallback') :
+                'null',
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
         ];
@@ -504,17 +532,26 @@ class Datatable
         );
     }
 
-    public function setCallback($callback): void
+    /**
+     * Set callback
+     */
+    public function setCallback(mixed $callback): void
     {
         $this->setConfig('drawCallback', $callback);
     }
 
+    /**
+     * Set common script
+     */
     public function getCommonScript(): string
     {
         return 'console.log("from getCommonScript")';
     }
 
-    public function setGetDataUrl($defaultUrl = null): void
+    /**
+     * Set getDataUrl
+     */
+    public function setGetDataUrl(mixed $defaultUrl = null): void
     {
         $url = (array)$this->getConfig('ajaxUrl', $defaultUrl);
         $url = array_merge($url, ['fullBase' => true, '_ext' => 'json']);
@@ -556,6 +593,9 @@ class Datatable
         }
     }
 
+    /**
+     * Process extra fields
+     */
     protected function processExtraFields(): string
     {
         $rows = [];
@@ -655,6 +695,12 @@ class Datatable
                     throw new OutOfBoundsException('Please specify a custom linkFormatter');
                 }
                 $output = new $link['linkFormatter']($this->Helper, $link);
+                if (!($output instanceof LinkInterface)) {
+                    throw new OutOfBoundsException(
+                        'Custom linkFormatter must implement ' .
+                        '\CakeDC\Datatables\View\LinkFormatter\LinkInterface'
+                    );
+                }
                 break;
             case Datatables::LINK_TYPE_GET:
             default:
@@ -687,10 +733,10 @@ class Datatable
      */
     protected function processColumnTypeSearch(): string
     {
-        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
+        if ($this->searchHeadersTypes == []) {
             $this->searchHeadersTypes = $this->getConfig('searchHeadersTypes');
         }
-        if ($this->searchHeadersTypes === null || $this->searchHeadersTypes == []) {
+        if ($this->searchHeadersTypes == []) {
             $this->searchHeadersTypes = $this->fillTypes($this->getConfig('fields'));
         }
 
@@ -729,7 +775,7 @@ class Datatable
     protected function fillTypes(array $datakeys): array
     {
         $searchTypes = [];
-        foreach ($datakeys as $name => $key) {
+        foreach ($datakeys as $key) {
             if (isset($key['searchable']) && $key['searchable'] == 'false') {
                 $searchTypes[] = [];
             } else {

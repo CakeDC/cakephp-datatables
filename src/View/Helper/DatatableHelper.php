@@ -25,7 +25,7 @@ class DatatableHelper extends Helper
     /**
      * Default Datatable js library configuration.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
         'processing' => true,
@@ -111,6 +111,9 @@ class DatatableHelper extends Helper
         $this->dtInstance->setRowActions($rowActions);
     }
 
+    /**
+     * Set callback for created row
+     */
     public function setCallbackCreatedRow(string $functionCallback): void
     {
         $this->dtInstance->setCallbackCreatedRow($functionCallback);
@@ -151,17 +154,19 @@ class DatatableHelper extends Helper
         array $headersAttrsTr = [],
         array $headersAttrsTh = []
     ): string {
-
         return $this->dtInstance
             ->setHeaders($tableHeaders, [
-                'format' => $format ?? false,
-                'translate' => $translate ?? false,
-                'headersAttrsTr' => $headersAttrsTr ?? [],
-                'headersAttrsTh' => $headersAttrsTh ?? [],
+                'format' => $format,
+                'translate' => $translate,
+                'headersAttrsTr' => $headersAttrsTr,
+                'headersAttrsTh' => $headersAttrsTh,
             ])
             ->getTableHeaders();
     }
 
+    /**
+     * Set callback
+     */
     public function setCallback(string $functionCallback): void
     {
         $this->dtInstance->setCallback($functionCallback);

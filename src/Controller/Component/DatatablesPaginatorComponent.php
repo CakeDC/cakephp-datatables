@@ -5,6 +5,8 @@ namespace CakeDC\Datatables\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Datasource\Paging\PaginatedInterface;
+use Cake\Datasource\QueryInterface;
+use Cake\Datasource\RepositoryInterface;
 
 /**
  * DatatablesPaginator component
@@ -14,12 +16,17 @@ class DatatablesPaginatorComponent extends Component
     /**
      * Default configuration.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $_defaultConfig = [];
 
-    public function paginate(object $object, array $settings = []): PaginatedInterface
-    {
+    /**
+     * Paginate method
+     */
+    public function paginate(
+        RepositoryInterface|QueryInterface|string|null $object,
+        array $settings = []
+    ): PaginatedInterface {
         $request = $this->getController()->getRequest();
         $dtData = $request->is('post') ? $request->getData() : $request->getQueryParams();
 
@@ -64,8 +71,8 @@ class DatatablesPaginatorComponent extends Component
      */
     protected function applyLimits(array $data, array $settings): array
     {
-        $dtStart = (int)$data['start'] ?? 0;
-        $dtLength = (int)$data['length'] ?? 0;
+        $dtStart = (int)($data['start'] ?? 0);
+        $dtLength = (int)($data['length'] ?? 0);
 
         $settings['limit'] = $dtLength;
         if ($dtStart === 0) {
