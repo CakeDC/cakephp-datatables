@@ -15,7 +15,7 @@ trait LinkTrait
 
     protected Helper|DatatableHelper $helper;
 
-    protected $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
+    protected string $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
     function (value) {
         const disable = :disable
         if (disable(value, obj)) {
@@ -56,6 +56,12 @@ trait LinkTrait
         return '';
     }
 
+    /**
+     * Get conditional link
+     *
+     * @param string $htmlLink
+     * @return string
+     */
     protected function conditionalLink(string $htmlLink): string
     {
         if (empty($this->getConfig('disable'))) {

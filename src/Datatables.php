@@ -11,6 +11,11 @@ class Datatables
     public const LINK_TYPE_DELETE = 'DELETE';
     public const LINK_TYPE_CUSTOM = 'CUSTOM';
 
+    /**
+     * Get post link methods
+     *
+     * @return array<string>
+     */
     public static function postLinkMethods(): array
     {
         return [

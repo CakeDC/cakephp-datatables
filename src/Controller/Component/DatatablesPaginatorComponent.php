@@ -80,10 +80,10 @@ class DatatablesPaginatorComponent extends Component
     /**
      * Translate the CakePHP pagination paging attribute into response keys for the datatables to consume
      *
-     * @param  $resultSet
+     * @param mixed $resultSet
      * @return void
      */
-    public function prepareResponse($resultSet): void
+    public function prepareResponse(mixed $resultSet): void
     {
         $pagingData = $this->getController()->getRequest()->getAttribute('paging');
         if (is_array($pagingData) && count($pagingData) === 1) {
@@ -123,7 +123,7 @@ class DatatablesPaginatorComponent extends Component
             if (($dtColumn['searchable'] ?? null) !== 'true') {
                 continue;
             }
-            if (!array_key_exists('data',$dtColumn)) {
+            if (!array_key_exists('data', $dtColumn)) {
                 continue;
             }
 
