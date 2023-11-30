@@ -76,6 +76,7 @@ class Datatable
             'headersAttrsTr' => [],
             'headersAttrsTh' => [],
         ],
+		'multiSelectType' => 'jquery-ui',
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
@@ -312,20 +313,24 @@ class Datatable
                     :onCompleteCallback
                     //column search
                     :columnSearch
+                    
+                    :multiSelectCallback
                 },
             });
 
             dt.css(:tableCss);
-            if( jQuery.isFunction( 'select2' ) ) {
-                $(function(){
-                    $(function(){
-                        // for execute the select2 plugin after all events are loaded
-                        $('.form-select-multiple').select2();
-                    });
-                });
-            }
         });
     DATATABLE_CONFIGURATION;
+
+	protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
+			if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
+	JQUERYUI_CONFIGURATION;
+
+
+	protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
+			if($.fn.select2) { $(function(){ $('.form-select-multiple').select2();}); }
+	SELECT2_CONFIGURATION;
+
 
     /**
      * @param Helper $Helper
@@ -462,6 +467,7 @@ class Datatable
             'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
+			'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
         ];
 
         if ($this->getConfig('createdRow')) {
