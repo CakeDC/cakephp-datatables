@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\Datatable;
 
+use CakeDC\Datatables\Datatables;
+use CakeDC\Datatables\Exception\MissConfiguredException;
+use CakeDC\Datatables\View\LinkFormatter\LinkInterface;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
-use CakeDC\Datatables\Datatables;
-use CakeDC\Datatables\Exception\MissConfiguredException;
 use Exception;
 use InvalidArgumentException;
 
@@ -181,20 +182,33 @@ class Datatable
                             $('#:tagId').find('#from'+colIdx)
                             .datepicker()
                             .on('change', function () {
-                                if($('#to'+colIdx).val() !== '') {
+                                if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
                                     api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
+                                    $('#to'+colIdx).val('');
+                                    if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
+                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
+                                    } else {
+                                        $('#from'+colIdx).val('');
+                                        api.column(colIdx).search('').draw();
+                                    }
                                 }
                             });
                             $('#:tagId').find('#to'+colIdx)
                             .datepicker()
                             .on('change', function () {
-                                if($('#from'+colIdx).val() !== '') {
+                                if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
                                     api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                 } else {
-                                    api.column(colIdx).search( '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    $('#from'+colIdx).val('');
+                                    if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
+                                        api.column(colIdx).search('|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    } else {
+                                        $('#to'+colIdx).val('');
+                                        api.column(colIdx).search('').draw();
+                                    }
                                 }
+
                             });
                             break;
                         case 'input':
@@ -488,6 +502,11 @@ class Datatable
         );
     }
 
+    public function setCallback($callback): void
+    {
+        $this->setConfig('drawCallback', $callback);
+    }
+
     public function getCommonScript(): string
     {
         return 'console.log("from getCommonScript")';
@@ -518,7 +537,7 @@ class Datatable
             };
             GET_DATA;
         } else {
-            if ($csrfToken !== null){
+            if ($csrfToken !== null) {
                 $headers = "headers: { 'X-CSRF-Token': '{$csrfToken}' },";
             } else {
                 $headers = "";
@@ -582,9 +601,9 @@ class Datatable
                 if ($key['width'] ?? null) {
                     $output .= "\nwidth: '{$key['width']}',";
                 }
-				if ($key['className'] ?? null) {
-					$output .= "\nclassName: '{$key['className']}',";
-				}
+                if ($key['className'] ?? null) {
+                    $output .= "\nclassName: '{$key['className']}',";
+                }
             }
             $output .= '}';
 
@@ -606,7 +625,7 @@ class Datatable
     {
         $links = [];
         foreach ($sourceLinks as $link) {
-            $links[] = $this->processActionLink($link);
+            $links[] = $this->processActionLink($link)->render();
         }
 
         return $links;
@@ -616,34 +635,29 @@ class Datatable
      * Format link with specified options from links array.
      *
      * @param  array $link
-     * @return string
+     * @return LinkInterface
      */
-    protected function processActionLink(array $link): string
+    protected function processActionLink(array $link): LinkInterface
     {
         switch ($link['type'] ?? null) {
             case Datatables::LINK_TYPE_DELETE:
             case Datatables::LINK_TYPE_PUT:
             case Datatables::LINK_TYPE_POST:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\PostLink($this->Helper, $link);
+                $output = new \CakeDC\Datatables\View\LinkFormatter\PostLink($this->Helper, $link);
                 break;
             case Datatables::LINK_TYPE_CUSTOM:
-                if (!class_exists($link['formatter'] ?? null)) {
-                    throw new \OutOfBoundsException("Please specify a custom formatter");
+                if (!class_exists($link['linkFormatter'] ?? null)) {
+                    throw new \OutOfBoundsException("Please specify a custom linkFormatter");
                 }
-                $output = new $link['formatter']($this->Helper, $link);
-
-                if (!method_exists($output, 'link')) {
-                    throw new \OutOfBoundsException("Method link is not found in class");
-                }
-
+                $output = new $link['linkFormatter']($this->Helper, $link);
                 break;
             case Datatables::LINK_TYPE_GET:
             default:
-                $output = new \CakeDC\Datatables\View\Formatter\Link\Link($this->Helper, $link);
+                $output = new \CakeDC\Datatables\View\LinkFormatter\Link($this->Helper, $link);
                 break;
         }
 
-        return $output->link();
+        return $output;
     }
 
     /**
