@@ -19,6 +19,7 @@ class Datatable
 {
     use InstanceConfigTrait;
 
+
     /**
      * @var string
      */
@@ -34,6 +35,11 @@ class Datatable
      *
      * @var array<string, mixed>
      */
+
+
+	const MULTI_SELECT_TYPE_SELECT2 = 'select2';
+	const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
+
     protected $_defaultConfig = [
         'processing' => true,
         'serverSide' => true,
@@ -76,7 +82,7 @@ class Datatable
             'headersAttrsTr' => [],
             'headersAttrsTh' => [],
         ],
-		'multiSelectType' => 'jquery-ui',
+		'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
