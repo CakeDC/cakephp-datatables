@@ -339,6 +339,12 @@ class Datatable
             });
 
             dt.css(:tableCss);
+            
+            function validateDate(text) {
+                text = text.replaceAll("/","-");
+                var re = /^(\d{4}(-)\d{2}(-)\d{2}|\d{2}(-)\d{2}(-)\d{4})$/;
+                return re.test(text);
+            }
         });
     DATATABLE_CONFIGURATION;
 
