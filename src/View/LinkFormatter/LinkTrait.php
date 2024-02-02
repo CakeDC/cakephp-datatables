@@ -5,7 +5,6 @@ namespace CakeDC\Datatables\View\LinkFormatter;
 
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Text;
-use Cake\View\Helper;
 use CakeDC\Datatables\View\Helper\DatatableHelper;
 use Exception;
 
@@ -13,7 +12,7 @@ trait LinkTrait
 {
     use InstanceConfigTrait;
 
-    protected Helper|DatatableHelper $helper;
+    protected DatatableHelper $helper;
 
     protected string $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
     function (value) {
@@ -29,7 +28,7 @@ trait LinkTrait
     /**
      * @throws \Exception
      */
-    public function __construct(Helper $helper, array $config = [])
+    public function __construct(DatatableHelper $helper, array $config = [])
     {
         $this->helper = $helper;
         $this->setConfig($config);

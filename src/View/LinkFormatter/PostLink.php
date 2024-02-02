@@ -36,11 +36,14 @@ class PostLink implements LinkInterface
             unset($url['extra']);
         }
 
+        $target = $this->getConfig('target');
+        assert(is_string($target));
+
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
                 'href' => $this->helper->Url->build($url) . $urlExtraValue,
-                'target' => $this->getConfig('target') ?: "' + {$this->getConfig('target')} + '",
+                'target' => $target ?: "' + $target + '",
                 'content' => $this->getConfig('label') ?: "' + {$this->getConfig('value')} + '",
                 'onclick' => $this->onclickAction(),
             ]

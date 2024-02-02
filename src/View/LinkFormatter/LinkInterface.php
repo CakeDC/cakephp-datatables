@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CakeDC\Datatables\View\LinkFormatter;
 
-use Cake\View\Helper;
+use CakeDC\Datatables\View\Helper\DatatableHelper;
 
 /**
  * LinkInterface
@@ -13,7 +13,7 @@ interface LinkInterface
     /**
      * Constructor
      */
-    public function __construct(Helper $helper, array $config = []);
+    public function __construct(DatatableHelper $helper, array $config = []);
 
     /**
      * Initialize

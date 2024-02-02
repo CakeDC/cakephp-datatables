@@ -32,3 +32,7 @@ if (file_exists($root . '/config/bootstrap.php')) {
     return;
 }
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
+
+use Cake\Controller\Controller;
+
+class_alias(Controller::class, 'App\Controller\AppController');

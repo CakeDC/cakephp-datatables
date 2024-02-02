@@ -6,7 +6,6 @@ namespace CakeDC\Datatables\Datatable;
 use Cake\Core\InstanceConfigTrait;
 use Cake\Utility\Inflector;
 use Cake\Utility\Text;
-use Cake\View\Helper;
 use CakeDC\Datatables\Datatables;
 use CakeDC\Datatables\Exception\MissConfiguredException;
 use CakeDC\Datatables\View\Helper\DatatableHelper;
@@ -25,8 +24,8 @@ class Datatable
 {
     use InstanceConfigTrait;
 
-    const MULTI_SELECT_TYPE_SELECT2 = 'select2';
-    const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
+    public const MULTI_SELECT_TYPE_SELECT2 = 'select2';
+    public const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
 
     /**
      * @var string
@@ -85,7 +84,7 @@ class Datatable
             'headersAttrsTr' => [],
             'headersAttrsTh' => [],
         ],
-		'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
+        'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
@@ -111,7 +110,7 @@ class Datatable
         ],
     ];
 
-    protected Helper|DatatableHelper $Helper;
+    protected DatatableHelper $Helper;
 
     /**
      * @var array<string>
@@ -356,19 +355,18 @@ class Datatable
         });
     DATATABLE_CONFIGURATION;
 
-	protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
-			if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
-	JQUERYUI_CONFIGURATION;
+    protected string $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
+        if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
+    JQUERYUI_CONFIGURATION;
 
-
-	protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
-			if($.fn.select2) { $(function(){ $('.form-select-multiple').select2();}); }
-	SELECT2_CONFIGURATION;
+    protected string $datatableSelect2Template = <<<SELECT2_CONFIGURATION
+        if($.fn.select2) { $(function(){ $('.form-select-multiple').select2();}); }
+    SELECT2_CONFIGURATION;
 
     /**
-     * @param \Cake\View\Helper $Helper
+     * @param \CakeDC\Datatables\View\Helper\DatatableHelper $Helper
      */
-    public function __construct(Helper $Helper)
+    public function __construct(DatatableHelper $Helper)
     {
         $this->Helper = $Helper;
         $this->setConfig($Helper->getConfig());
@@ -470,13 +468,12 @@ class Datatable
 
         $this->processColumnRenderCallbacks();
         $this->processColumnDefinitionsCallbacks();
-        $this->searchHeadersTypes = $this->processColumnTypeSearch();
         $this->validateConfigurationOptions();
 
         $this->columnSearchTemplate = Text::insert(
             $this->columnSearchTemplate,
             [
-                'searchTypes' => ($this->searchHeadersTypes ?? ''),
+                'searchTypes' => $this->processColumnTypeSearch(),
                 'delay' => $this->getConfig('delay') ?? '3000',
                 'tagId' => $tagId,
             ]
@@ -525,7 +522,9 @@ class Datatable
                 'null',
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
-			'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
+            'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ?
+                $this->datatableJqueryUITemplate :
+                $this->datatableSelect2Template,
         ];
 
         if ($this->getConfig('createdRow')) {

@@ -35,12 +35,16 @@ class Link implements LinkInterface
             unset($url['extra']);
         }
 
+        $target = $this->getConfig('target');
+        assert(is_string($target));
+        $label = $this->getConfig('value');
+        assert(is_string($label));
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
                 'href' => $this->helper->Url->build($url) . $urlExtraValue,
-                'target' => $this->getConfig('target') ?: "' + {$this->getConfig('target')} + '",
-                'content' => $this->getConfig('label') ?: "' + {$this->getConfig('value')} + '",
+                'target' => $target ?: "' + {$target} + '",
+                'content' => $label ?: "' + {$this->getConfig('value')} + '",
             ]
         );
 
