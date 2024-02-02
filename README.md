@@ -358,4 +358,12 @@ $this->Datatable->setCallbackCreatedRow(
         }
     }'
 );
-``
+```
+
+# Change library of multiselect
+
+The default is jquery-ui multiselect, if you want to change this you can change it in the configuration or like the code example below
+
+```php
+$this->Datatable->getInstance()->setConfig('multiSelectType', 'select2');
+```

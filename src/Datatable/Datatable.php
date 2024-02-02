@@ -25,6 +25,9 @@ class Datatable
 {
     use InstanceConfigTrait;
 
+    const MULTI_SELECT_TYPE_SELECT2 = 'select2';
+    const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
+
     /**
      * @var string
      */
@@ -82,6 +85,7 @@ class Datatable
             'headersAttrsTr' => [],
             'headersAttrsTh' => [],
         ],
+		'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
@@ -337,18 +341,12 @@ class Datatable
                     :onCompleteCallback
                     //column search
                     :columnSearch
+
+                    :multiSelectCallback
                 },
             });
 
             dt.css(:tableCss);
-            if( jQuery.isFunction( 'select2' ) ) {
-                $(function(){
-                    $(function(){
-                        // for execute the select2 plugin after all events are loaded
-                        $('.form-select-multiple').select2();
-                    });
-                });
-            }
 
             function validateDate(text) {
                 text = text.replaceAll("/","-");
@@ -357,6 +355,15 @@ class Datatable
             }
         });
     DATATABLE_CONFIGURATION;
+
+	protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
+			if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
+	JQUERYUI_CONFIGURATION;
+
+
+	protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
+			if($.fn.select2) { $(function(){ $('.form-select-multiple').select2();}); }
+	SELECT2_CONFIGURATION;
 
     /**
      * @param \Cake\View\Helper $Helper
@@ -518,6 +525,7 @@ class Datatable
                 'null',
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
+			'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
         ];
 
         if ($this->getConfig('createdRow')) {
