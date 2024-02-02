@@ -60,7 +60,7 @@ class DatatableHelper extends Helper
     ];
 
     // @todo maybe array of instances
-    private Datatable $dtInstance;
+    private ?Datatable $dtInstance = null;
 
     /**
      * @param array $config
