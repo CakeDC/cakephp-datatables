@@ -60,7 +60,7 @@ class DatatableHelper extends Helper
     ];
 
     // @todo maybe array of instances
-    private ?Datatable $dtInstance = null;
+    private Datatable $dtInstance;
 
     /**
      * @param array $config
@@ -86,10 +86,6 @@ class DatatableHelper extends Helper
      */
     public function getInstance(): Datatable
     {
-        if (empty($this->dtInstance)) {
-            return $this->reset();
-        }
-
         return $this->dtInstance;
     }
 
