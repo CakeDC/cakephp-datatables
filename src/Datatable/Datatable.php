@@ -135,7 +135,7 @@ class Datatable
                 if (columnsSearch[colIdx].type !== undefined) {
                     switch (columnsSearch[colIdx].type) {
                         case 'multiple':
-                            cell.html('<select class="form-select-multiple" multiple="multiple"><option value=""></option></select>');
+                            cell.html('<select class="form-select-multiple" multiple="multiple"></select>');
                             columnsSearch[colIdx].data.forEach(function (data) {
                                 $(
                                     'select',
