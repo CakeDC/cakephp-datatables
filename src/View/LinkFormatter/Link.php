@@ -13,8 +13,9 @@ class Link implements LinkInterface
     protected array $_defaultConfig = [
         'template' => '<a href=":href" title=":title" target=":target" class=":class">:content</a>',
         'url' => null,
-        'value' => null,
-        'label' => null,
+        'value' => '',
+        'label' => '',
+        'class' => '',
         'disable' => null,
         'disableValue' => '',
         'type' => Datatables::LINK_TYPE_GET,
