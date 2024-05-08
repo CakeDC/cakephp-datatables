@@ -11,7 +11,7 @@ class Link implements LinkInterface
     use LinkTrait;
 
     protected array $_defaultConfig = [
-        'template' => '<a href=":href" target=":target">:content</a>',
+        'template' => '<a href=":href" title=":title" target=":target" class=":class">:content</a>',
         'url' => null,
         'value' => null,
         'label' => null,
@@ -36,15 +36,17 @@ class Link implements LinkInterface
         }
 
         $target = $this->getConfig('target');
-        assert(is_string($target));
-        $label = $this->getConfig('value');
-        assert(is_string($label));
+        $value = $this->getConfig('value');
+        $title = $this->getConfig('title');
+        $class = $this->getConfig('class');
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
                 'href' => $this->helper->Url->build($url) . $urlExtraValue,
                 'target' => $target ?: "' + {$target} + '",
-                'content' => $label ?: "' + {$this->getConfig('value')} + '",
+                'title' => $title ?: "' + {$title} + '",
+                'class' => $class ?: "' + {$class} + '",
+                'content' => $value ?: "' + {$this->getConfig('value')} + '",
             ]
         );
 
