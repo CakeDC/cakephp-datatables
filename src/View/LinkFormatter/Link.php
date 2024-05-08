@@ -36,10 +36,10 @@ class Link implements LinkInterface
             unset($url['extra']);
         }
 
-        $target = $this->getConfig('target');
-        $value = $this->getConfig('value');
-        $title = $this->getConfig('title');
-        $class = $this->getConfig('class');
+        $target = (string)$this->getConfig('target');
+        $value = (string)$this->getConfig('value');
+        $title = (string)$this->getConfig('title');
+        $class = (string)$this->getConfig('class');
         $htmlLink = Text::insert(
             $this->getConfig('template'),
             [
