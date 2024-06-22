@@ -731,8 +731,7 @@ class Datatable
     {
         $searchTypes = [];
         foreach ($datakeys as $name => $key) {
-
-            if (isset($key['searchable']) && $key['searchable'] == 'false') {
+            if (isset($key['searchable']) && !filter_var($key['searchable'], FILTER_VALIDATE_BOOLEAN)) {
                 $searchTypes[] = [];
             } else {
                 if (isset($key['searchInput'])) {
