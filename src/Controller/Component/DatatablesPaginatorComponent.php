@@ -5,8 +5,6 @@ namespace CakeDC\Datatables\Controller\Component;
 
 use Cake\Controller\Component\PaginatorComponent;
 use Cake\Datasource\ResultSetInterface;
-use Cake\Http\ServerRequest;
-use Migrations\ConfigurationTrait;
 
 /**
  * DatatablesPaginator component
