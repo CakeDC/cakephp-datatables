@@ -59,6 +59,7 @@ class DatatableHelper extends Helper
             'word-wrap' => 'break-word',
         ],
         'delay' => 3000,
+        'defaultOrder' => [0, 'asc'],
     ];
 
     // @todo maybe array of instances
@@ -169,4 +170,13 @@ class DatatableHelper extends Helper
         $this->dtInstance->setCallback($functionCallback);
     }
 
+    /**
+     * @param integer $columnIdex
+     * @param string $order
+     * @return void
+     */
+    public function setDefaultOrder(int $columnIdex = 0, string $order = 'asc'): void
+    {
+        $this->getInstance()->setConfig('defaultOrder', [$columnIdex, $order], false);
+    }
 }

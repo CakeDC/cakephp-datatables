@@ -84,6 +84,7 @@ class Datatable
             'headersAttrsTh' => [],
         ],
 		'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
+        'defaultOrder' => [0, 'asc'],
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
@@ -336,6 +337,7 @@ class Datatable
                     
                     :multiSelectCallback
                 },
+                order: :defaultOrder,
             });
 
             dt.css(:tableCss);
@@ -494,6 +496,7 @@ class Datatable
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
 			'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
+            'defaultOrder' => json_encode([$this->getConfig('defaultOrder')]),
         ];
 
         if ($this->getConfig('createdRow')) {
@@ -598,21 +601,20 @@ class Datatable
                     $output .= "return " . implode("\n + ", $links);
                     $output .= '},';
                 }
-                if ($key['render'] ?? null) {
+                if ($key['render'] ?? false) {
                     $output .= "\nrender: {$key['render']},";
                 }
-                if ($key['orderable'] ?? null) {
+                if ($key['orderable'] ?? false) {
                     $output .= "\norderable: {$key['orderable']},";
                 }
-                if ($key['width'] ?? null) {
+                if ($key['width'] ?? false) {
                     $output .= "\nwidth: '{$key['width']}',";
                 }
-                if ($key['className'] ?? null) {
+                if ($key['className'] ?? false) {
                     $output .= "\nclassName: '{$key['className']}',";
                 }
             }
-            $output .= '}';
-
+            $output .= '}';            
             return $output;
         };
         $configColumns = array_map($processor, (array)$this->getConfig('fields'));
