@@ -119,7 +119,7 @@ class Datatable
 
     // @todo chagen var to const/let
     protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
-        var api = this.api();
+        const api = this.api();
 
         let columnsSearch = :searchTypes;
 
@@ -266,8 +266,12 @@ class Datatable
 
         // Save filters
         $('#:tagId .filters input, #:tagId .filters select').on('change', function () {
-            saveFilters();
+            saveFilters(api);
         });
+
+        api.on('order', function() {
+            saveFilters(api);
+        })
     COLUMN_SEARCH_CONFIGURATION;
 
     protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
@@ -351,27 +355,31 @@ class Datatable
 
             dt.css(:tableCss);
 
-            function saveFilters() {
+            function saveFilters(api) {
                 let filters = {};
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
                     filters[index] = $(item).val();
                 });
-                
-                localStorage.setItem('filters_:tagId', JSON.stringify(filters));
+
+                let order = api.order();
+
+                localStorage.setItem('filters_:tagId', JSON.stringify({filters, order}));
             }
 
             function loadFilters(api) {
-                let filters = JSON.parse(localStorage.getItem('filters_:tagId'));
+                let {filters, order} = JSON.parse(localStorage.getItem('filters_:tagId'));
                 if (filters) {
                     $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
                         $(item).val(filters[index]);
                         api.columns(index).search(filters[index]) 
                     });
-
-                    api.draw();
                 }
+                if (order) {
+                    api.order(order);
+                }
+                api.draw();
             }
-            
+
             function validateDate(text) {
                 text = text.replaceAll("/","-");
                 var re = /^(\d{4}(-)\d{2}(-)\d{2}|\d{2}(-)\d{2}(-)\d{4})$/;
