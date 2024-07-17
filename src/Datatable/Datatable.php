@@ -272,6 +272,10 @@ class Datatable
         api.on('order', function() {
             saveFilters(api);
         })
+
+        $('.clear-filters').on('click', function() {
+            resetFilters(api)
+        })
     COLUMN_SEARCH_CONFIGURATION;
 
     protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
@@ -355,7 +359,7 @@ class Datatable
 
             dt.css(:tableCss);
 
-            function saveFilters(api) {
+            async function saveFilters(api) {
                 let filters = {};
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
                     filters[index] = $(item).val();
@@ -366,18 +370,22 @@ class Datatable
                 localStorage.setItem('filters_:tagId', JSON.stringify({filters, order}));
             }
 
-            function loadFilters(api) {
-                let {filters, order} = JSON.parse(localStorage.getItem('filters_:tagId'));
-                if (filters) {
-                    $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
-                        $(item).val(filters[index]);
-                        api.columns(index).search(filters[index]) 
-                    });
-                }
-                if (order) {
-                    api.order(order);
-                }
+            async function loadFilters(api) {
+                let {filters, order} = JSON.parse(localStorage.getItem('filters_:tagId')) ?? {filters: [], order: []};
+
+                $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
+                    $(item).val(filters[index] ?? null);
+                    api.columns(index).search(filters[index] ?? '') 
+                });
+
+                api.order(order);
+
                 api.draw();
+            }
+
+            async function resetFilters(api) {
+                await localStorage.removeItem('filters_:tagId');
+                await loadFilters(api)
             }
 
             function validateDate(text) {
