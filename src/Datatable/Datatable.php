@@ -38,8 +38,8 @@ class Datatable
      */
 
 
-	const MULTI_SELECT_TYPE_SELECT2 = 'select2';
-	const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
+    const MULTI_SELECT_TYPE_SELECT2 = 'select2';
+    const MULTI_SELECT_TYPE_JQUERY_UI = 'jquery-ui';
 
     protected $_defaultConfig = [
         'processing' => true,
@@ -83,7 +83,8 @@ class Datatable
             'headersAttrsTr' => [],
             'headersAttrsTh' => [],
         ],
-		'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
+        'multiSelectType' => self::MULTI_SELECT_TYPE_SELECT2,
+        'defaultOrder' => [0, 'asc'],
         'rowActions' => [
             'name' => 'actions',
             'orderable' => 'false',
@@ -118,154 +119,167 @@ class Datatable
 
     // @todo chagen var to const/let
     protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
-        var api = this.api();
+        const api = this.api();
 
         let columnsSearch = :searchTypes;
 
         // For each column
         api
-        .columns()
-        .eq(0)
-        .each(function (colIdx) {
-            var cell = $('#:tagId .filters th').eq(
-                $(api.column(colIdx).header()).index()
-            );
-            if (columnsSearch[colIdx] !== undefined) {
+            .columns()
+            .eq(0)
+            .each(function (colIdx) {
+                var cell = $('#:tagId .filters th').eq(
+                    $(api.column(colIdx).header()).index()
+                );
+                if (columnsSearch[colIdx] !== undefined) {
 
-                if (columnsSearch[colIdx].type !== undefined) {
-                    switch (columnsSearch[colIdx].type) {
-                        case 'multiple':
-                            cell.html('<select class="form-select-multiple" multiple="multiple"></select>');
-                            columnsSearch[colIdx].data.forEach(function (data) {
+                    if (columnsSearch[colIdx].type !== undefined) {
+                        switch (columnsSearch[colIdx].type) {
+                            case 'multiple':
+                                cell.html('<select class="form-select-multiple" multiple="multiple"></select>');
+                                columnsSearch[colIdx].data.forEach(function (data) {
+                                    $(
+                                        'select',
+                                        $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
+                                    ).append(
+                                        '<option value="' + data.id + '">' + data.name + '</option>'
+                                    );
+                                });
                                 $(
                                     'select',
                                     $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                                ).append(
-                                    '<option value="' + data.id + '">' + data.name + '</option>'
-                                );
-                            });
-                            $(
-                                'select',
-                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                            )
-                            .on('change', function () {
-                                let select_value = $(
-                                    'select option:selected',
-                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                                ).toArray().map(item => item.value).join();
-                                api.column(colIdx).search(select_value).draw();
-                            });
-                            break;
+                                )
+                                .on('change', function () {
+                                    let select_value = $(
+                                        'select option:selected',
+                                        $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
+                                    ).toArray().map(item => item.value).join();
+                                    api.column(colIdx).search(select_value).draw();
+                                });
+                                break;
 
-                        case 'select' :
-                            cell.html('<select style="width:100%"><option value=""></option></select>');
-                            columnsSearch[colIdx].data.forEach(function (data) {
+                            case 'select' :
+                                cell.html('<select style="width:100%"><option value=""></option></select>');
+                                columnsSearch[colIdx].data.forEach(function (data) {
+                                    $(
+                                        'select',
+                                        $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
+                                    ).append(
+                                        '<option value="' + data.id + '">' + data.name + '</option>'
+                                    );
+                                });
                                 $(
                                     'select',
                                     $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                                ).append(
-                                    '<option value="' + data.id + '">' + data.name + '</option>'
-                                );
-                            });
-                            $(
-                                'select',
-                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                            )
-                            .on('change', function () {
-                                api.column(colIdx).search(this.value).draw();
-                            });
-                            break;
+                                )
+                                .on('change', function () {
+                                    api.column(colIdx).search(this.value).draw();
+                                });
+                                break;
 
-                        case 'date':
-                            title = cell.data('header') ?? '';
-                            cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
-                            $('#:tagId').find('#from'+colIdx)
-                            .datepicker()
-                            .on('change', function () {
-                                if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
-                                } else {
-                                    $('#to'+colIdx).val('');
-                                    if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
-                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
-                                    } else {
-                                        $('#from'+colIdx).val('');
-                                        api.column(colIdx).search('').draw();
-                                    }
-                                }
-                            });
-                            $('#:tagId').find('#to'+colIdx)
-                            .datepicker()
-                            .on('change', function () {
-                                if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
-                                    api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
-                                } else {
-                                    $('#from'+colIdx).val('');
-                                    if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
-                                        api.column(colIdx).search('|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                            case 'date':
+                                title = cell.data('header') ?? '';
+                                cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                                $('#:tagId').find('#from'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
+                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
                                     } else {
                                         $('#to'+colIdx).val('');
-                                        api.column(colIdx).search('').draw();
+                                        if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
+                                            api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
+                                        } else {
+                                            $('#from'+colIdx).val('');
+                                            api.column(colIdx).search('').draw();
+                                        }
                                     }
-                                }
-
-                            });
-                            break;
-                        case 'input':
-                        default:
-                            title = cell.data('header') ?? '';
-                            cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
-                            $(
-                                'input',
-                                $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
-                            )
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                let action = exeCall;
-
-
-                                if(action == null || action == false) {
-                                    exeCall = true;
-                                    setTimeout(function () {
-                                        exeCall = false;
-                                    }, :delay);
-                                } else {
-                                    if(action == true) {
-                                        return;
+                                });
+                                $('#:tagId').find('#to'+colIdx)
+                                .datepicker()
+                                .on('change', function () {
+                                    if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
+                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                    } else {
+                                        $('#from'+colIdx).val('');
+                                        if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
+                                            api.column(colIdx).search('|' + $('#:tagId').find('#to' + colIdx).val()).draw();
+                                        } else {
+                                            $('#to'+colIdx).val('');
+                                            api.column(colIdx).search('').draw();
+                                        }
                                     }
-                                }
 
-                                e.stopPropagation();
-                                // Get the search value
-                                $(this).attr('title', $(this).val());
-                                var regexr = '({search})'; //$(this).parents('th').find('select').val();
+                                });
+                                break;
+                            case 'input':
+                            default:
+                                title = cell.data('header') ?? '';
+                                cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                                $(
+                                    'input',
+                                    $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
+                                )
+                                .off('keyup change')
+                                .on('keyup change', function (e) {
+                                    let action = exeCall;
 
-                                var cursorPosition = this.selectionStart;
-                                // Search the column for that value
-                                api
-                                    .column(colIdx)
-                                    .search(
-                                        this.value != ''?
-                                            regexr.replace('{search}',
-                                                '(((' + this.value + ')))'): '',
-                                                this.value != '',
-                                                this.value == ''
-                                            )
-                                    .draw();
 
-                                $(this)
-                                    .focus()[0]
-                                    .setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                            break;
+                                    if(action == null || action == false) {
+                                        exeCall = true;
+                                        setTimeout(function () {
+                                            exeCall = false;
+                                        }, :delay);
+                                    } else {
+                                        if(action == true) {
+                                            return;
+                                        }
+                                    }
+
+                                    e.stopPropagation();
+                                    // Get the search value
+                                    $(this).attr('title', $(this).val());
+                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+
+                                    var cursorPosition = this.selectionStart;
+                                    // Search the column for that value
+                                    api
+                                        .column(colIdx)
+                                        .search(
+                                            this.value != ''?
+                                                regexr.replace('{search}',
+                                                    '(((' + this.value + ')))'): '',
+                                                    this.value != '',
+                                                    this.value == ''
+                                                )
+                                        .draw();
+
+                                    $(this)
+                                        .focus()[0]
+                                        .setSelectionRange(cursorPosition, cursorPosition);
+                                });
+                                break;
+                        }
                     }
                 }
-            }
+            });
+
+        // Save filters
+        $('#:tagId .filters input, #:tagId .filters select').on('change', function () {
+            saveFilters(api);
         });
+
+        api.on('order', function() {
+            saveFilters(api);
+        })
+
+        $('.clear-filters').on('click', function() {
+            resetFilters(api)
+        })
     COLUMN_SEARCH_CONFIGURATION;
 
     protected $genericSearchTemplate = <<<GENERIC_SEARCH_CONFIGURATION
-        $('#:searchInput').on( 'keyup click', function () {
+        $('#:searchInput').on('keyup click', function () {
             $('#:tagId').DataTable().search(
                 $('#:searchInput').val()
             ).draw();
@@ -331,15 +345,49 @@ class Datatable
                 initComplete: function () {
                     //onComplete
                     :onCompleteCallback
+
                     //column search
                     :columnSearch
                     
                     :multiSelectCallback
+
+                    // Load filters
+                    loadFilters(api);
                 },
+                order: :defaultOrder,
             });
 
             dt.css(:tableCss);
-            
+
+            async function saveFilters(api) {
+                let filters = {};
+                $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
+                    filters[index] = $(item).val();
+                });
+
+                let order = api.order();
+
+                localStorage.setItem('filters_:tagId', JSON.stringify({filters, order}));
+            }
+
+            async function loadFilters(api) {
+                let {filters, order} = JSON.parse(localStorage.getItem('filters_:tagId')) ?? {filters: [], order: []};
+
+                $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
+                    $(item).val(filters[index] ?? null);
+                    api.columns(index).search(filters[index] ?? '') 
+                });
+
+                api.order(order);
+
+                api.draw();
+            }
+
+            async function resetFilters(api) {
+                await localStorage.removeItem('filters_:tagId');
+                await loadFilters(api)
+            }
+
             function validateDate(text) {
                 text = text.replaceAll("/","-");
                 var re = /^(\d{4}(-)\d{2}(-)\d{2}|\d{2}(-)\d{2}(-)\d{4})$/;
@@ -348,12 +396,12 @@ class Datatable
         });
     DATATABLE_CONFIGURATION;
 
-	protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
+    protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
 			if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
 	JQUERYUI_CONFIGURATION;
 
 
-	protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
+    protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
 			if($.fn.select2) { $(function(){ $('.form-select-multiple').select2();}); }
 	SELECT2_CONFIGURATION;
 
@@ -490,10 +538,11 @@ class Datatable
             'language' => json_encode($this->getConfig('language')),
             'lengthMenu' => json_encode($this->getConfig('lengthMenu')),
             'drawCallback' => $this->getConfig('drawCallback') ? $this->getConfig('drawCallback') : 'null',
-            'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : 'null',
+            'onCompleteCallback' => $this->getConfig('onCompleteCallback') ? $this->getConfig('onCompleteCallback') : '',
             'columnSearch' => $this->getConfig('columnSearch') ? $this->columnSearchTemplate : '',
             'tableCss' => json_encode($this->getConfig('tableCss')),
-			'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
+            'multiSelectCallback' => $this->getConfig('multiSelectType') === 'jquery-ui' ? $this->datatableJqueryUITemplate : $this->datatableSelect2Template,
+            'defaultOrder' => json_encode([$this->getConfig('defaultOrder')]),
         ];
 
         if ($this->getConfig('createdRow')) {
@@ -598,21 +647,20 @@ class Datatable
                     $output .= "return " . implode("\n + ", $links);
                     $output .= '},';
                 }
-                if ($key['render'] ?? null) {
+                if ($key['render'] ?? false) {
                     $output .= "\nrender: {$key['render']},";
                 }
-                if ($key['orderable'] ?? null) {
+                if ($key['orderable'] ?? false) {
                     $output .= "\norderable: {$key['orderable']},";
                 }
-                if ($key['width'] ?? null) {
+                if ($key['width'] ?? false) {
                     $output .= "\nwidth: '{$key['width']}',";
                 }
-                if ($key['className'] ?? null) {
+                if ($key['className'] ?? false) {
                     $output .= "\nclassName: '{$key['className']}',";
                 }
             }
             $output .= '}';
-
             return $output;
         };
         $configColumns = array_map($processor, (array)$this->getConfig('fields'));
