@@ -20,7 +20,6 @@ class Datatable
 {
     use InstanceConfigTrait;
 
-
     /**
      * @var string
      */
@@ -223,8 +222,6 @@ class Datatable
                                 .off('keyup change')
                                 .on('keyup change', function (e) {
                                     let action = exeCall;
-
-
                                     if(action == null || action == false) {
                                         exeCall = true;
                                         setTimeout(function () {
@@ -348,7 +345,7 @@ class Datatable
 
                     //column search
                     :columnSearch
-                    
+
                     :multiSelectCallback
 
                     // Load filters
