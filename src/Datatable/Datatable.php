@@ -368,21 +368,23 @@ class Datatable
             }
 
             async function loadFilters(api) {
-                let {filters, order} = JSON.parse(localStorage.getItem('filters_:tagId')) ?? {filters: [], order: []};
+                let data = JSON.parse(localStorage.getItem('filters_:tagId')) ?? null;
+
+                if (data == null) { return; }
 
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
-                    $(item).val(filters[index] ?? null);
-                    api.columns(index).search(filters[index] ?? '') 
+                    $(item).val(data.filters[index] ?? null);
+                    api.columns(index).search(data.filters[index] ?? '') 
                 });
 
-                api.order(order);
+                api.order(data.order);
 
                 api.draw();
             }
 
             async function resetFilters(api) {
                 await localStorage.removeItem('filters_:tagId');
-                await loadFilters(api)
+                location.reload();
             }
 
             function validateDate(text) {
