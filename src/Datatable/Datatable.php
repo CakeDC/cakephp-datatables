@@ -135,7 +135,7 @@ class Datatable
                     if (columnsSearch[colIdx].type !== undefined) {
                         switch (columnsSearch[colIdx].type) {
                             case 'multiple':
-                                cell.html('<select class="form-select-multiple" multiple="multiple"></select>');
+                                cell.html('<select data-col-id="'+ colIdx +'" class="form-select-multiple" multiple="multiple"></select>');
                                 columnsSearch[colIdx].data.forEach(function (data) {
                                     $(
                                         'select',
@@ -158,7 +158,7 @@ class Datatable
                                 break;
 
                             case 'select' :
-                                cell.html('<select style="width:100%"><option value=""></option></select>');
+                                cell.html('<select data-col-id="'+ colIdx +'" style="width:100%"><option value=""></option></select>');
                                 columnsSearch[colIdx].data.forEach(function (data) {
                                     $(
                                         'select',
@@ -178,7 +178,7 @@ class Datatable
 
                             case 'date':
                                 title = cell.data('header') ?? '';
-                                cell.html('<input type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                                cell.html('<input data-col-id="'+ colIdx +'" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
                                 $('#:tagId').find('#from'+colIdx)
                                 .datepicker()
                                 .on('change', function () {
@@ -214,7 +214,7 @@ class Datatable
                             case 'input':
                             default:
                                 title = cell.data('header') ?? '';
-                                cell.html('<input type="text" style="width:100%;" placeholder="'+ title +'" />');
+                                cell.html('<input data-col-id="'+ colIdx +'" type="text" style="width:100%;" placeholder="'+ title +'" />');
                                 $(
                                     'input',
                                     $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
@@ -359,7 +359,7 @@ class Datatable
             async function saveFilters(api) {
                 let filters = {};
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
-                    filters[index] = $(item).val();
+                    filters[parseInt($(item).data('col-id'))] = $(item).val();
                 });
 
                 let order = api.order();
@@ -373,8 +373,9 @@ class Datatable
                 if (data == null) { return; }
 
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
-                    $(item).val(data.filters[index] ?? null);
-                    api.columns(index).search(data.filters[index] ?? '') 
+                    let colId = parseInt($(item).data('col-id'));
+                    $(item).val(data.filters[colId] ?? null);
+                    api.columns(colId).search(data.filters[colId] ?? '');
                 });
 
                 api.order(data.order);
