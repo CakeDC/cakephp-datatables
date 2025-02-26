@@ -178,7 +178,7 @@ class Datatable
 
                             case 'date':
                                 title = cell.data('header') ?? '';
-                                cell.html('<input data-col-id="'+ colIdx +'" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepiker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                                cell.html('<input data-col-id="'+ colIdx +'" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepicker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
                                 $('#:tagId').find('#from'+colIdx)
                                 .datepicker()
                                 .on('change', function () {
@@ -359,7 +359,11 @@ class Datatable
             async function saveFilters(api) {
                 let filters = {};
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
-                    filters[parseInt($(item).data('col-id'))] = $(item).val();
+                    if($(item).hasClass('from datepicker')){
+                        filters[parseInt($(item).data('col-id'))] = $(item).val() + '|' + $(item).next().next().val();
+                    } else {
+                        filters[parseInt($(item).data('col-id'))] = $(item).val();
+                    }
                 });
 
                 let order = api.order();
@@ -374,7 +378,14 @@ class Datatable
 
                 $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
                     let colId = parseInt($(item).data('col-id'));
-                    $(item).val(data.filters[colId] ?? null);
+
+                    if($(item).hasClass('from datepicker')){
+                        const parts = data.filters[colId].split("|");
+                        $(item).val(parts[0] ?? null);
+                        $(item).next().next().val(parts[1] ?? null);
+                    } else {
+                        $(item).val(data.filters[colId] ?? null);
+                    }
                     api.columns(colId).search(data.filters[colId] ?? '');
                 });
 
