@@ -358,7 +358,7 @@ class Datatable
 
             async function saveFilters(api) {
                 let filters = {};
-                $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
+                $('#:tagId .filters input, #:tagId .filters select').not('.to').each(function (index, item) {
                     if($(item).hasClass('from datepicker')){
                         filters[parseInt($(item).data('col-id'))] = $(item).val() + '|' + $(item).next().next().val();
                     } else {
@@ -376,7 +376,7 @@ class Datatable
 
                 if (data == null) { return; }
 
-                $('#:tagId .filters input, #:tagId .filters select').each(function (index, item) {
+                $('#:tagId .filters input, #:tagId .filters select').not('.to').each(function (index, item) {
                     let colId = parseInt($(item).data('col-id'));
 
                     if($(item).hasClass('from datepicker')){
