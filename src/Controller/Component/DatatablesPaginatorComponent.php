@@ -82,8 +82,8 @@ class DatatablesPaginatorComponent extends Component
 	 */
 	protected function applyLimits(array $data, array $settings): array
 	{
-		$dtStart = (int)$data['start'] ?? 0;
-		$dtLength = (int)$data['length'] ?? 0;
+		$dtStart = isset($data['start']) ? (int)$data['start'] : 0;
+		$dtLength = isset($data['length']) ? (int)$data['length'] : 0;
 
 		$settings['limit'] = $dtLength;
 		if ($dtStart === 0) {
