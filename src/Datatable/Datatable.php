@@ -107,6 +107,7 @@ class Datatable
                 ],
             ],
         ],
+        'datepickerFormat' => 'mm/dd/yy',
     ];
 
     protected $Helper;
@@ -180,7 +181,9 @@ class Datatable
                                 title = cell.data('header') ?? '';
                                 cell.html('<input data-col-id="'+ colIdx +'" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepicker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
                                 $('#:tagId').find('#from'+colIdx)
-                                .datepicker()
+                                .datepicker({
+                                    dateFormat: ':datepickerFormat'
+                                })
                                 .on('change', function () {
                                     if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
                                         api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
@@ -195,7 +198,9 @@ class Datatable
                                     }
                                 });
                                 $('#:tagId').find('#to'+colIdx)
-                                .datepicker()
+                                .datepicker({
+                                    dateFormat: ':datepickerFormat'
+                                })
                                 .on('change', function () {
                                     if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
                                         api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
@@ -508,6 +513,7 @@ class Datatable
                 'searchTypes' => ($this->searchHeadersTypes ?? ''),
                 'delay' => $this->getConfig('delay') ?? '3000',
                 'tagId' => $tagId,
+                'datepickerFormat' => $this->getConfig('datepickerFormat') ?? 'mm/dd/yy',
             ]
         );
 
@@ -763,11 +769,11 @@ class Datatable
                     if (!empty($parVal) && is_array($parVal)) {
                         $dataPars = [];
                         foreach ($parVal as $v) {
-							$name = $v['name'];
-							if (is_string($name)) {
-								$name = addslashes($v['name']);
-							}
-							$dataPars[] = "{'id': '" . $v['id'] . "', 'name': '" . $name . "'}";
+                            $name = $v['name'];
+                            if (is_string($name)) {
+                                $name = addslashes($v['name']);
+                            }
+                            $dataPars[] = "{'id': '" . $v['id'] . "', 'name': '" . $name . "'}";
                         }
                         $data = '[' . implode(',', $dataPars) . ']';
                     } else {
