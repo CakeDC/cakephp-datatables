@@ -121,6 +121,16 @@ class Datatable
     protected $columnSearchTemplate = <<<COLUMN_SEARCH_CONFIGURATION
         const api = this.api();
 
+        function debounce(fn, delay) {
+            let timer = null;
+            return function () {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(context, args), delay);
+            };
+        }
+
         let columnsSearch = :searchTypes;
 
         // For each column
@@ -224,42 +234,32 @@ class Datatable
                                     'input',
                                     $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
                                 )
-                                .off('keyup change')
-                                .on('keyup change', function (e) {
-                                    let action = exeCall;
-                                    if(action == null || action == false) {
-                                        exeCall = true;
-                                        setTimeout(function () {
-                                            exeCall = false;
-                                        }, :delay);
-                                    } else {
-                                        if(action == true) {
-                                            return;
-                                        }
-                                    }
+                                .off('input')
+                                .on(
+                                    'input',
+                                    debounce(function (e) {
+                                        e.stopPropagation();
 
-                                    e.stopPropagation();
-                                    // Get the search value
-                                    $(this).attr('title', $(this).val());
-                                    var regexr = '({search})'; //$(this).parents('th').find('select').val();
+                                        $(this).attr('title', $(this).val());
+                                        var regexr = '({search})';
+                                        var cursorPosition = this.selectionStart;
 
-                                    var cursorPosition = this.selectionStart;
-                                    // Search the column for that value
-                                    api
-                                        .column(colIdx)
-                                        .search(
-                                            this.value != ''?
-                                                regexr.replace('{search}',
-                                                    '(((' + this.value + ')))'): '',
-                                                    this.value != '',
-                                                    this.value == ''
-                                                )
-                                        .draw();
+                                        api
+                                            .column(colIdx)
+                                            .search(
+                                                this.value != ''
+                                                    ? regexr.replace('{search}', '(((' + this.value + ')))')
+                                                    : '',
+                                                this.value != '',
+                                                this.value == ''
+                                            )
+                                            .draw();
 
-                                    $(this)
-                                        .focus()[0]
-                                        .setSelectionRange(cursorPosition, cursorPosition);
-                                });
+                                        $(this)
+                                            .focus()[0]
+                                            .setSelectionRange(cursorPosition, cursorPosition);
+                                    }, 1000) // wait 1 second
+                                );
                                 break;
                         }
                     }
@@ -511,7 +511,7 @@ class Datatable
             $this->columnSearchTemplate,
             [
                 'searchTypes' => ($this->searchHeadersTypes ?? ''),
-                'delay' => $this->getConfig('delay') ?? '3000',
+                'delay' => $this->getConfig('delay') ?? '1000',
                 'tagId' => $tagId,
                 'datepickerFormat' => $this->getConfig('datepickerFormat') ?? 'mm/dd/yy',
             ]
