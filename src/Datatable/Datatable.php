@@ -311,6 +311,8 @@ class Datatable
         // Datatables configuration
         $(async () => {
 
+        const filterVersion = 2;
+
         let configColumns = [:configColumns];
 
             // API callback
@@ -385,8 +387,10 @@ class Datatable
                         orderCol.data('unique-identifier'),
                         apiOrder[0][1]
                     ];
-                    dataToStringify = {filters, order};
+                    dataToStringify.order = order;
                 }
+
+                dataToStringify.filterVersion = filterVersion;
 
                 localStorage.setItem('filters_:tagId', JSON.stringify(dataToStringify));
             }
@@ -395,6 +399,13 @@ class Datatable
                 let data = JSON.parse(localStorage.getItem('filters_:tagId')) ?? null;
 
                 if (data == null) { return; }
+
+                // failsafe to reset the table in case of outdated filters
+                if (typeof data.filterVersion === 'undefined' || parseInt(data.filterVersion) < 2) {
+                    // remove localstorage without reloading page to prevent potential loop
+                    localStorage.removeItem('filters_:tagId');
+                    return;
+                }
 
                 let orderColIndex = null;
 
