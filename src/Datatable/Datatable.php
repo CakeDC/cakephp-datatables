@@ -141,12 +141,13 @@ class Datatable
                 var cell = $('#:tagId .filters th').eq(
                     $(api.column(colIdx).header()).index()
                 );
-                if (columnsSearch[colIdx] !== undefined) {
+                let colUniqueIdentifier = configColumns[colIdx]['data'] ?? null;
+                if (columnsSearch[colIdx] !== undefined && colUniqueIdentifier !== null) {
 
                     if (columnsSearch[colIdx].type !== undefined) {
                         switch (columnsSearch[colIdx].type) {
                             case 'multiple':
-                                cell.html('<select data-col-id="'+ colIdx +'" class="form-select-multiple" multiple="multiple"></select>');
+                                cell.html('<select data-col-id="'+ colIdx +'" data-unique-identifier="' + colUniqueIdentifier + '" class="form-select-multiple" multiple="multiple"></select>');
                                 columnsSearch[colIdx].data.forEach(function (data) {
                                     $(
                                         'select',
@@ -169,7 +170,7 @@ class Datatable
                                 break;
 
                             case 'select' :
-                                cell.html('<select data-col-id="'+ colIdx +'" style="width:100%"><option value=""></option></select>');
+                                cell.html('<select data-col-id="'+ colIdx +'" data-unique-identifier="' + colUniqueIdentifier + '" style="width:100%"><option value=""></option></select>');
                                 columnsSearch[colIdx].data.forEach(function (data) {
                                     $(
                                         'select',
@@ -189,7 +190,7 @@ class Datatable
 
                             case 'date':
                                 title = cell.data('header') ?? '';
-                                cell.html('<input data-col-id="'+ colIdx +'" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepicker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
+                                cell.html('<input data-col-id="'+ colIdx +'" data-unique-identifier="' + colUniqueIdentifier + '" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepicker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
                                 $('#:tagId').find('#from'+colIdx)
                                 .datepicker({
                                     dateFormat: ':datepickerFormat'
@@ -229,7 +230,7 @@ class Datatable
                             case 'input':
                             default:
                                 title = cell.data('header') ?? '';
-                                cell.html('<input data-col-id="'+ colIdx +'" type="text" style="width:100%;" placeholder="'+ title +'" />');
+                                cell.html('<input data-col-id="'+ colIdx +'" data-unique-identifier="' + colUniqueIdentifier + '" type="text" style="width:100%;" placeholder="'+ title +'" />');
                                 $(
                                     'input',
                                     $('#:tagId .filters th').eq($(api.column(colIdx).header()).index())
@@ -310,6 +311,8 @@ class Datatable
         // Datatables configuration
         $(async () => {
 
+        let configColumns = [:configColumns];
+
             // API callback
             :getDataMethod
 
@@ -364,16 +367,28 @@ class Datatable
             async function saveFilters(api) {
                 let filters = {};
                 $('#:tagId .filters input, #:tagId .filters select').not('.to').each(function (index, item) {
-                    if($(item).hasClass('from datepicker')){
-                        filters[parseInt($(item).data('col-id'))] = $(item).val() + '|' + $(item).next().next().val();
-                    } else {
-                        filters[parseInt($(item).data('col-id'))] = $(item).val();
+                    if ($(item).data('unique-identifier')) {
+                        if($(item).hasClass('from datepicker')){
+                            filters[$(item).data('unique-identifier')] = $(item).val() + '|' + $(item).next().next().val();
+                        } else {
+                            filters[$(item).data('unique-identifier')] = $(item).val();
+                        }
                     }
                 });
 
-                let order = api.order();
+                let apiOrder = api.order();
+                let orderCol = $('#:tagId .filters input, #:tagId .filters select').not('.to').eq(apiOrder[0][0]);
 
-                localStorage.setItem('filters_:tagId', JSON.stringify({filters, order}));
+                let dataToStringify = {filters};
+                if (orderCol.length && orderCol.data('unique-identifier')) {
+                    let order = [
+                        orderCol.data('unique-identifier'),
+                        apiOrder[0][1]
+                    ];
+                    dataToStringify = {filters, order};
+                }
+
+                localStorage.setItem('filters_:tagId', JSON.stringify(dataToStringify));
             }
 
             async function loadFilters(api) {
@@ -381,20 +396,37 @@ class Datatable
 
                 if (data == null) { return; }
 
-                $('#:tagId .filters input, #:tagId .filters select').not('.to').each(function (index, item) {
-                    let colId = parseInt($(item).data('col-id'));
+                let orderColIndex = null;
 
-                    if($(item).hasClass('from datepicker')){
-                        const parts = data.filters[colId].split("|");
-                        $(item).val(parts[0] ?? null);
-                        $(item).next().next().val(parts[1] ?? null);
-                    } else {
-                        $(item).val(data.filters[colId] ?? null);
+                $('#:tagId .filters input, #:tagId .filters select').not('.to').each(function (index, item) {
+                    if ($(item).data('unique-identifier')) {
+                        let colId = parseInt($(item).data('col-id'));
+                        let colUniqueIdentifier = $(item).data('unique-identifier');
+
+                        if($(item).hasClass('from datepicker')){
+                            const parts = data.filters[colUniqueIdentifier].split("|");
+                            $(item).val(parts[0] ?? null);
+                            $(item).next().next().val(parts[1] ?? null);
+                        } else {
+                            $(item).val(data.filters[colUniqueIdentifier] ?? null);
+                        }
+                        api.columns(colId).search(data.filters[colUniqueIdentifier] ?? '');
+
+                        if (data.order) {
+                            if (colUniqueIdentifier === data.order[0]){
+                                orderColIndex = colId;
+                            }
+                        }
                     }
-                    api.columns(colId).search(data.filters[colId] ?? '');
                 });
 
-                api.order(data.order);
+                if (orderColIndex !== null) {
+                    let order = [
+                        orderColIndex,
+                        data.order[1]
+                    ];
+                    api.order(order);
+                }
 
                 api.draw();
             }
