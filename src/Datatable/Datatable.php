@@ -243,7 +243,6 @@ class Datatable
 
                                         $(this).attr('title', $(this).val());
                                         var regexr = '({search})';
-                                        var cursorPosition = this.selectionStart;
 
                                         api
                                             .column(colIdx)
@@ -255,10 +254,6 @@ class Datatable
                                                 this.value == ''
                                             )
                                             .draw();
-
-                                        $(this)
-                                            .focus()[0]
-                                            .setSelectionRange(cursorPosition, cursorPosition);
                                     }, 1000) // wait 1 second
                                 );
                                 break;
