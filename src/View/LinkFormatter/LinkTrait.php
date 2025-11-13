@@ -11,42 +11,47 @@ use Exception;
 
 trait LinkTrait
 {
-    use InstanceConfigTrait;
+	use InstanceConfigTrait;
 
-    protected $_helper;
+	protected $_helper;
 
-    public function __construct(Helper $helper, array $config = [])
-    {
-        $this->_helper = $helper;
-        $this->setConfig($config);
-        $this->initialize($config);
+	public function __construct(Helper $helper, array $config = [])
+	{
+		$this->_helper = $helper;
+		$this->setConfig($config);
+		$this->initialize($config);
 
-        if (empty($this->getConfig('url'))) {
-            throw new Exception("url option cannot be empty");
-        }
-    }
+		if (empty($this->getConfig('url'))) {
+			throw new Exception("url option cannot be empty");
+		}
+	}
 
-    /**
-     * @param  array $config
-     * @return void
-     */
-    public function initialize(array $config = []): void
-    {
-    }
+	/**
+	 * @param  array $config
+	 * @return void
+	 */
+	public function initialize(array $config = []): void
+	{
+	}
 
-    /**
-     * @return string
-     */
-    public function render(): string
-    {
-        return '';
-    }
+	/**
+	 * @return string
+	 */
+	public function render(): string
+	{
+		return '';
+	}
 
-    protected $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
+	protected $conditionalLinkScript = <<<CONDITIONAL_LINK_SCRIPT
     function (value) {
         const disable = :disable
         if (disable(value, obj)) {
             return value ?? "";
+        }
+
+        const multitenantCheck = :multitenantCheck
+        if (!multitenantCheck(value, obj)) {
+            return "";
         }
 
         return ':htmlLink';
@@ -54,16 +59,17 @@ trait LinkTrait
     CONDITIONAL_LINK_SCRIPT;
 
 
-    protected function conditionalLink(string $htmlLink)
-    {
-        if (empty($this->getConfig('disable'))) {
-            return '\'' . $htmlLink . '\'';
-        }
+	protected function conditionalLink(string $htmlLink)
+	{
+		if (empty($this->getConfig('disable')) && empty($this->getConfig('multitenantCheck'))) {
+			return '\'' . $htmlLink . '\'';
+		}
 
-        return Text::insert($this->conditionalLinkScript, [
-            'disable' => $this->getConfig('disable'),
-            'htmlLink' => $htmlLink,
-            'valueObj' => $this->getConfig('value'),
-        ]);
-    }
+		return Text::insert($this->conditionalLinkScript, [
+			'disable' => $this->getConfig('disable') ?? '(value, obj) => false',
+			'multitenantCheck' => $this->getConfig('multitenantCheck') ?? '(value, obj) => true',
+			'htmlLink' => $htmlLink,
+			'valueObj' => $this->getConfig('value'),
+		]);
+	}
 }
