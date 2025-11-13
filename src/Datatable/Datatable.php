@@ -108,6 +108,7 @@ class Datatable
 				],
 			],
 		],
+		'datepickerFormat' => 'mm/dd/yy',
 		'allowedActionsOnChildSystem' => ['copy'],
 	];
 
@@ -550,8 +551,9 @@ class Datatable
 			$this->columnSearchTemplate,
 			[
 				'searchTypes' => ($this->searchHeadersTypes ?? ''),
-				'delay' => $this->getConfig('delay') ?? '3000',
+				'delay' => $this->getConfig('delay') ?? '1000',
 				'tagId' => $tagId,
+				'datepickerFormat' => $this->getConfig('datepickerFormat') ?? 'mm/dd/yy',
 			]
 		);
 
