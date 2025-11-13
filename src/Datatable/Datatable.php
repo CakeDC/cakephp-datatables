@@ -699,7 +699,7 @@ class Datatable
 					$allowedOnChildSystem = in_array($link['url']['action'] ?? null, $this->getConfig('allowedActionsOnChildSystem', []));
 				}
 				if (!$allowedOnChildSystem) {
-					$link['multitenantCheck'] = '(value, obj) => obj.tenant_id !== ' . \App\Utility\Tenant::getId();
+					$link['multitenantCheck'] = '(value, obj) => obj.tenant_id === ' . \App\Utility\Tenant::getId();
 				}
 			}
 			$links[] = $this->processActionLink($link)->render();
