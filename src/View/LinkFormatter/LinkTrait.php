@@ -50,8 +50,8 @@ trait LinkTrait
         }
 
         const multitenantCheck = :multitenantCheck
-        if (multitenantCheck(value, obj)) {
-            return value ?? "";
+        if (!multitenantCheck(value, obj)) {
+            return "";
         }
 
         return ':htmlLink';
@@ -67,7 +67,7 @@ trait LinkTrait
 
 		return Text::insert($this->conditionalLinkScript, [
 			'disable' => $this->getConfig('disable') ?? '(value, obj) => false',
-			'multitenantCheck' => $this->getConfig('multitenantCheck') ?? '(value, obj) => false',
+			'multitenantCheck' => $this->getConfig('multitenantCheck') ?? '(value, obj) => true',
 			'htmlLink' => $htmlLink,
 			'valueObj' => $this->getConfig('value'),
 		]);
