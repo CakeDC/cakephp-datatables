@@ -193,41 +193,43 @@ class Datatable
                             case 'date':
                                 title = cell.data('header') ?? '';
                                 cell.html('<input data-col-id="'+ colIdx +'" data-unique-identifier="' + colUniqueIdentifier + '" type="text" id="from' + colIdx + '" class="from datepicker" data-provide="datepicker" placeholder="'+ title +'" /><br /><input type="text" class="to datepicker" id="to' + colIdx + '" data-provide="datepicker" placeholder="'+ title +'" />')
-                                $('#:tagId').find('#from'+colIdx)
-                                .datepicker({
-                                    dateFormat: ':datepickerFormat'
-                                })
-                                .on('change', function () {
-                                    if($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
-                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
-                                    } else {
-                                        $('#to'+colIdx).val('');
-                                        if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
-                                            api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|').draw();
-                                        } else {
-                                            $('#from'+colIdx).val('');
-                                            api.column(colIdx).search('').draw();
-                                        }
-                                    }
-                                });
-                                $('#:tagId').find('#to'+colIdx)
-                                .datepicker({
-                                    dateFormat: ':datepickerFormat'
-                                })
-                                .on('change', function () {
-                                    if($('#from'+colIdx).val() !== '' && validateDate($('#from'+colIdx).val())) {
-                                        api.column(colIdx).search($('#:tagId').find('#from'+colIdx).val() + '|' + $('#:tagId').find('#to' + colIdx).val()).draw();
-                                    } else {
-                                        $('#from'+colIdx).val('');
-                                        if ($('#to'+colIdx).val() !== '' && validateDate($('#to'+colIdx).val())) {
-                                            api.column(colIdx).search('|' + $('#:tagId').find('#to' + colIdx).val()).draw();
-                                        } else {
-                                            $('#to'+colIdx).val('');
-                                            api.column(colIdx).search('').draw();
-                                        }
-                                    }
+                                const from = $('#:tagId').find('#from'+colIdx)
+                                const to = $('#:tagId').find('#to'+colIdx)
 
+                                from.datepicker({
+                                    dateFormat: ':datepickerFormat'
+                                })
+                                .on('change', function () {
+                                    if(to.val() !== '' && validateDate(to.val())) {
+                                        api.column(colIdx).search(from.val() + '|' + to.val()).draw();
+                                    } else {
+                                        to.val('');
+                                        if(from.val() !== '' && validateDate(from.val())) {
+                                            api.column(colIdx).search(from.val() + '|').draw();
+                                        } else {
+                                            from.val('');
+                                            api.column(colIdx).search('').draw();
+                                        }
+                                    }
                                 });
+                                
+                                to.datepicker({
+                                    dateFormat: ':datepickerFormat'
+                                })
+                                .on('change', function () {
+                                    if(from.val() !== '' && validateDate(from.val())) {
+                                        api.column(colIdx).search(from.val() + '|' + to.val()).draw();
+                                    } else {
+                                        from.val('');
+                                        if (to.val() !== '' && validateDate(to.val())) {
+                                            api.column(colIdx).search('|' + to.val()).draw();
+                                        } else {
+                                            to.val('');
+                                            api.column(colIdx).search('').draw();
+                                        }
+                                    }
+                                });
+
                                 break;
                             case 'input':
                             default:
