@@ -447,9 +447,14 @@ class Datatable
             }
 
             function validateDate(text) {
-                text = text.replaceAll("/","-");
-                var re = /^(\d{4}(-)\d{2}(-)\d{2}|\d{2}(-)\d{2}(-)\d{4})$/;
-                return re.test(text);
+                const normalizedText = text.replaceAll("/", "-");
+                const patterns = [
+                    new RegExp(/^\d{2}-\d{2}-\d{4}$/),
+                    new RegExp(/^\d{4}-\d{2}-\d{2}$/),
+                    new RegExp(/^\d{2}-[a-zA-Z]{3}-\d{4}$/),
+                    new RegExp(/^[a-zA-Z]{3}-\d{2}-\d{4}$/)
+                ];
+                return patterns.some(re => re.test(normalizedText));
             }
         });
     DATATABLE_CONFIGURATION;
