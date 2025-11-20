@@ -460,8 +460,30 @@ class Datatable
     DATATABLE_CONFIGURATION;
 
 	protected $datatableJqueryUITemplate = <<<JQUERYUI_CONFIGURATION
-			if ($.fn.multiselect) { $(function(){ $('.form-select-multiple').multiselect(); }); }
-	JQUERYUI_CONFIGURATION;
+    if ($.fn.multiselect) {
+        function updateMultiselectStyle(select) {
+            var checkedCount = select.multiselect("getChecked").length;
+            var button = select.multiselect("getButton");
+
+            if (checkedCount > 0) {
+                button.addClass("active-filter");
+            } else {
+                button.removeClass("active-filter");
+            }
+        }
+
+        $(function(){
+            $('.form-select-multiple').multiselect({
+                create: function() {
+                    updateMultiselectStyle($(this));
+                },
+                close: function() {
+                    updateMultiselectStyle($(this));
+                }
+            });
+        });
+    }
+    JQUERYUI_CONFIGURATION;
 
 
 	protected $datatableSelect2Template = <<<SELECT2_CONFIGURATION
