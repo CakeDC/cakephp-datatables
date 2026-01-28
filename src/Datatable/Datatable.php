@@ -480,6 +480,8 @@ class Datatable
                 close: function() {
                     updateMultiselectStyle($(this));
                 }
+            }).multiselectfilter({
+                label: "",
             });
         });
     }
